@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: #F3F4F6;
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #FFFFFF;
+    color: #1F2937;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E5E7EB;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D1D5DB;
+}
+
+/* Custom utility gradients */
+.bg-gradient-follicular-outer {
+  background-color: #FFDEE9;
+}
+
+.bg-gradient-energy-card {
+  background: linear-gradient(246deg, #FFF2F5 0%, #FFF8FC 75%, #FAF8F9 100%);
+}
+
+.bg-gradient-current-phase {
+  background: #FFFFFF;
+}
+
+.bg-gradient-skin {
+  background: linear-gradient(180deg, #FDF2F8 0%, #FFF1F2 100%);
+}
+
+.bg-gradient-digestive {
+  background: linear-gradient(180deg, #FFFBEB 0%, #FFF7ED 100%);
+}
+
+.bg-gradient-trend {
+  background: linear-gradient(180deg, #FFF9FC 0%, #FDECF3 100%);
+}
+
+.bg-gradient-completion {
+  background: linear-gradient(180deg, #FDF0F5 0%, #FFF5FA 100%);
+}
+
+.bg-gradient-user-profile {
+  background: linear-gradient(102deg, #E5469D 0%, #FF81B3 100%);
+}
+
+.text-gradient-pink {
+  background: linear-gradient(180deg, #F475C1 0%, #FF24AF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(180deg, #AF71F4 0%, #955BE3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.selected-day-card {
+  background: linear-gradient(180deg, hsla(306, 85%, 71%, 0.25) 0%, hsla(288, 100%, 57%, 0.25) 100%);
+  border-color: #955BE3;
+  box-shadow: 0px 2.4px 4.8px -2.4px rgba(0,0,0,0.1), 0px 4.8px 7.2px -1.2px rgba(0,0,0,0.1);
+}
+
