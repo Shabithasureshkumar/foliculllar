@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { X, Droplets, Activity, Smile, Scale, Moon, GlassWater, Check } from 'lucide-react';
-import type { QuickLogCategory, WellnessMetricsState } from '../../types';
+import { X, Droplets, Activity, Smile, Scale, Moon, GlassWater, Check, Thermometer, TestTube, Flame } from 'lucide-react';
+import type { QuickLogCategory, WellnessMetricsState, FertilityTrackingState, CervicalMucusType, LhTestResult, LibidoLevel } from '../../types';
 
 interface QuickLogModalProps {
   category: QuickLogCategory | null;
   currentMetrics?: WellnessMetricsState;
+  currentFertility?: FertilityTrackingState;
   onClose: () => void;
-  onLogComplete: (message: string, update?: Partial<WellnessMetricsState>) => void;
+  onLogComplete: (
+    message: string,
+    metricUpdate?: Partial<WellnessMetricsState>,
+    fertilityUpdate?: Partial<FertilityTrackingState>
+  ) => void;
 }
 
 export const QuickLogModal: React.FC<QuickLogModalProps> = ({
   category,
   currentMetrics,
+  currentFertility,
   onClose,
   onLogComplete,
 }) => {
@@ -36,6 +42,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
       key={category}
       category={category}
       currentMetrics={currentMetrics}
+      currentFertility={currentFertility}
       onClose={onClose}
       onLogComplete={onLogComplete}
     />
@@ -45,13 +52,19 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
 interface ContentProps {
   category: QuickLogCategory;
   currentMetrics?: WellnessMetricsState;
+  currentFertility?: FertilityTrackingState;
   onClose: () => void;
-  onLogComplete: (message: string, update?: Partial<WellnessMetricsState>) => void;
+  onLogComplete: (
+    message: string,
+    metricUpdate?: Partial<WellnessMetricsState>,
+    fertilityUpdate?: Partial<FertilityTrackingState>
+  ) => void;
 }
 
 const QuickLogModalContent: React.FC<ContentProps> = ({
   category,
   currentMetrics,
+  currentFertility,
   onClose,
   onLogComplete,
 }) => {
@@ -64,10 +77,15 @@ const QuickLogModalContent: React.FC<ContentProps> = ({
       ? currentMetrics?.sleepHours || 7.5
       : category === 'water'
       ? 250
+      : category === 'bbt'
+      ? currentFertility?.bbtTempC || 36.40
       : ''
   );
   const [bloodColor, setBloodColor] = useState<string>('Dark Red');
   const [productCount, setProductCount] = useState<number>(2);
+  const [selectedMucus, setSelectedMucus] = useState<CervicalMucusType>(currentFertility?.cervicalMucus || 'creamy');
+  const [selectedLh, setSelectedLh] = useState<LhTestResult>(currentFertility?.lhTest || 'low');
+  const [selectedLibido, setSelectedLibido] = useState<LibidoLevel>(currentFertility?.libido || 'medium');
 
   const toggleSymptom = (symp: string) => {
     setSelectedSymptoms((prev) =>
@@ -110,6 +128,32 @@ const QuickLogModalContent: React.FC<ContentProps> = ({
         });
         break;
       }
+      case 'cervical_mucus':
+        onLogComplete(`Logged Cervical Mucus: ${selectedMucus.replace('_', ' ').toUpperCase()}`, undefined, {
+          cervicalMucus: selectedMucus,
+        });
+        break;
+      case 'bbt': {
+        const temp = parseFloat(String(customValue)) || 36.40;
+        const updatedTrend = currentFertility?.bbtTrend.map((pt) =>
+          pt.isToday ? { ...pt, tempC: temp } : pt
+        );
+        onLogComplete(`Logged BBT: ${temp.toFixed(2)}°C`, undefined, {
+          bbtTempC: temp,
+          bbtTrend: updatedTrend,
+        });
+        break;
+      }
+      case 'lh_test':
+        onLogComplete(`Logged LH Ovulation Test: ${selectedLh.toUpperCase()}`, undefined, {
+          lhTest: selectedLh,
+        });
+        break;
+      case 'libido':
+        onLogComplete(`Logged Libido Level: ${selectedLibido.toUpperCase()}`, undefined, {
+          libido: selectedLibido,
+        });
+        break;
     }
     onClose();
   };
@@ -352,6 +396,110 @@ const QuickLogModalContent: React.FC<ContentProps> = ({
             </div>
           </div>
         );
+
+      case 'cervical_mucus':
+        return (
+          <div className="space-y-3">
+            <p className="text-xs text-gray-500">Select today's cervical fluid consistency:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { type: 'dry' as CervicalMucusType, name: 'Dry (Low fertility)' },
+                { type: 'sticky' as CervicalMucusType, name: 'Sticky (Low fertility)' },
+                { type: 'creamy' as CervicalMucusType, name: 'Creamy (Transitional)' },
+                { type: 'watery' as CervicalMucusType, name: 'Watery (High fertility)' },
+                { type: 'egg_white' as CervicalMucusType, name: 'Egg White (Peak fertility)' },
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  type="button"
+                  onClick={() => setSelectedMucus(item.type)}
+                  className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
+                    selectedMucus === item.type
+                      ? 'bg-pink-500 text-white border-pink-500 shadow-xs'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
+                  }`}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'bbt':
+        return (
+          <div className="space-y-3">
+            <p className="text-xs text-gray-500">Enter today's waking Basal Body Temperature:</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                step="0.05"
+                min="35.0"
+                max="38.5"
+                placeholder="36.40"
+                value={customValue}
+                onChange={(e) => setCustomValue(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-2xl border border-gray-200 text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+              <span className="text-base font-bold text-gray-600">°C</span>
+            </div>
+          </div>
+        );
+
+      case 'lh_test':
+        return (
+          <div className="space-y-3">
+            <p className="text-xs text-gray-500">Select LH ovulation predictor kit result:</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { type: 'negative' as LhTestResult, label: 'Negative (< 10 mIU)' },
+                { type: 'low' as LhTestResult, label: 'Low (10–25 mIU)' },
+                { type: 'high' as LhTestResult, label: 'High (25–40 mIU)' },
+                { type: 'peak' as LhTestResult, label: 'Peak (LH Surge!)' },
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  type="button"
+                  onClick={() => setSelectedLh(item.type)}
+                  className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all ${
+                    selectedLh === item.type
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'libido':
+        return (
+          <div className="space-y-3">
+            <p className="text-xs text-gray-500">Select today's sex drive / vitality level:</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { type: 'low' as LibidoLevel, label: 'Low' },
+                { type: 'medium' as LibidoLevel, label: 'Medium' },
+                { type: 'high' as LibidoLevel, label: 'High' },
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  type="button"
+                  onClick={() => setSelectedLibido(item.type)}
+                  className={`p-3 rounded-xl border text-center text-xs font-bold transition-all ${
+                    selectedLibido === item.type
+                      ? 'bg-rose-500 text-white border-rose-500 shadow-xs'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
     }
   };
 
@@ -369,6 +517,14 @@ const QuickLogModalContent: React.FC<ContentProps> = ({
         return <Moon className="w-5 h-5 text-purple-500" />;
       case 'water':
         return <GlassWater className="w-5 h-5 text-cyan-500" />;
+      case 'cervical_mucus':
+        return <Droplets className="w-5 h-5 text-pink-500" />;
+      case 'bbt':
+        return <Thermometer className="w-5 h-5 text-purple-500" />;
+      case 'lh_test':
+        return <TestTube className="w-5 h-5 text-pink-500" />;
+      case 'libido':
+        return <Flame className="w-5 h-5 text-rose-500" />;
     }
   };
 
@@ -390,7 +546,7 @@ const QuickLogModalContent: React.FC<ContentProps> = ({
               {getHeaderIcon()}
             </div>
             <h3 id="quick-log-title" className="text-lg font-bold text-gray-900 capitalize">
-              Log {category}
+              Log {category.replace('_', ' ')}
             </h3>
           </div>
           <button

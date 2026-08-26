@@ -21,6 +21,7 @@ import {
   INITIAL_ACTIVITIES,
   INITIAL_WELLNESS_METRICS,
   INITIAL_CONNECTED_DEVICES,
+  INITIAL_FERTILITY_STATE,
 } from './data/mockData';
 import type {
   CycleDay,
@@ -30,6 +31,7 @@ import type {
   ConnectedDevice,
   QuickLogCategory,
   ToastMessage,
+  FertilityTrackingState,
 } from './types';
 
 export const App: React.FC = () => {
@@ -40,6 +42,7 @@ export const App: React.FC = () => {
   const [activities, setActivities] = useState<ActivityLog[]>(INITIAL_ACTIVITIES);
   const [wellnessMetrics, setWellnessMetrics] = useState<WellnessMetricsState>(INITIAL_WELLNESS_METRICS);
   const [devices, setDevices] = useState<ConnectedDevice[]>(INITIAL_CONNECTED_DEVICES);
+  const [fertilityState, setFertilityState] = useState<FertilityTrackingState>(INITIAL_FERTILITY_STATE);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Modals state
@@ -100,6 +103,12 @@ export const App: React.FC = () => {
     addToast('Body Changes Updated', undefined, 'success');
   };
 
+  // Fertility update
+  const handleUpdateFertility = (newFertility: Partial<FertilityTrackingState>) => {
+    setFertilityState((prev) => ({ ...prev, ...newFertility }));
+    addToast('Fertility Biomarkers Updated', undefined, 'success');
+  };
+
   // Add Activity
   const handleSaveActivity = (newActivity: Omit<ActivityLog, 'id'>) => {
     const actId = `act-${Date.now()}`;
@@ -155,9 +164,16 @@ export const App: React.FC = () => {
   };
 
   // Quick Log Complete
-  const handleQuickLogComplete = (msg: string, update?: Partial<WellnessMetricsState>) => {
-    if (update) {
-      setWellnessMetrics((prev) => ({ ...prev, ...update }));
+  const handleQuickLogComplete = (
+    msg: string,
+    metricUpdate?: Partial<WellnessMetricsState>,
+    fertilityUpdate?: Partial<FertilityTrackingState>
+  ) => {
+    if (metricUpdate) {
+      setWellnessMetrics((prev) => ({ ...prev, ...metricUpdate }));
+    }
+    if (fertilityUpdate) {
+      setFertilityState((prev) => ({ ...prev, ...fertilityUpdate }));
     }
     confetti({
       particleCount: 45,
@@ -198,12 +214,14 @@ export const App: React.FC = () => {
             />
           </div>
 
-          {/* Follicular Phase Pink Container Section */}
+          {/* Follicular Phase Pink Container Section (with Cervical Mucus, BBT & BBT Trend, LH & Libido) */}
           <FollicularSection
             bodyChanges={bodyChanges}
             activities={activities}
+            fertilityState={fertilityState}
             onOpenLogActivity={() => setIsLogActivityOpen(true)}
             onUpdateBodyChanges={handleUpdateBodyChanges}
+            onUpdateFertility={handleUpdateFertility}
           />
 
           {/* Wellness Metrics Bottom Card */}
@@ -271,6 +289,7 @@ export const App: React.FC = () => {
       <QuickLogModal
         category={activeQuickLogCategory}
         currentMetrics={wellnessMetrics}
+        currentFertility={fertilityState}
         onClose={() => setActiveQuickLogCategory(null)}
         onLogComplete={handleQuickLogComplete}
       />

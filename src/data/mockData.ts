@@ -4,6 +4,8 @@ import type {
   ActivityLog,
   WellnessMetricsState,
   ConnectedDevice,
+  FertilityTrackingState,
+  BbtDataPoint,
 } from '../types';
 
 export const INITIAL_DAYS: CycleDay[] = [
@@ -188,3 +190,21 @@ export const INSIGHTS_LIST = [
   'Stay hydrated and take rest.',
   'Light exercise like walking may help with cramps.',
 ];
+
+export const INITIAL_BBT_TREND: BbtDataPoint[] = [
+  { id: 'bbt-18', day: 'Wed', cycleDay: 28, dateStr: '18 Jun', tempC: 36.35 },
+  { id: 'bbt-19', day: 'Thu', cycleDay: 29, dateStr: '19 Jun', tempC: 36.30 },
+  { id: 'bbt-20', day: 'Fri', cycleDay: 30, dateStr: '20 Jun', tempC: 36.25 },
+  { id: 'bbt-21', day: 'Today', cycleDay: 1, dateStr: '21 Jun', tempC: 36.40, isToday: true },
+  { id: 'bbt-22', day: 'Mon', cycleDay: 2, dateStr: '22 Jun', tempC: 36.38 },
+  { id: 'bbt-23', day: 'Tue', cycleDay: 3, dateStr: '23 Jun', tempC: 36.42 },
+  { id: 'bbt-24', day: 'Wed', cycleDay: 4, dateStr: '24 Jun', tempC: 36.45 },
+];
+
+export const INITIAL_FERTILITY_STATE: FertilityTrackingState = {
+  cervicalMucus: 'creamy',
+  bbtTempC: 36.40,
+  bbtTrend: INITIAL_BBT_TREND,
+  lhTest: 'low',
+  libido: 'medium',
+};

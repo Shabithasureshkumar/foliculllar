@@ -54,7 +54,30 @@ export interface ConnectedDevice {
   batteryLevel?: number;
 }
 
-export type QuickLogCategory = 'flow' | 'symptoms' | 'mood' | 'weight' | 'sleep' | 'water';
+export type CervicalMucusType = 'dry' | 'sticky' | 'creamy' | 'watery' | 'egg_white';
+
+export type LhTestResult = 'negative' | 'low' | 'high' | 'peak';
+
+export type LibidoLevel = 'low' | 'medium' | 'high';
+
+export interface BbtDataPoint {
+  id: string;
+  day: string;
+  cycleDay: number;
+  dateStr: string;
+  tempC: number;
+  isToday?: boolean;
+}
+
+export interface FertilityTrackingState {
+  cervicalMucus: CervicalMucusType;
+  bbtTempC: number;
+  bbtTrend: BbtDataPoint[];
+  lhTest: LhTestResult;
+  libido: LibidoLevel;
+}
+
+export type QuickLogCategory = 'flow' | 'symptoms' | 'mood' | 'weight' | 'sleep' | 'water' | 'cervical_mucus' | 'bbt' | 'lh_test' | 'libido';
 
 export interface ToastMessage {
   id: string;

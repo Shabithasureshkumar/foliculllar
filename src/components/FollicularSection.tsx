@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { Plus, Star, Sparkles, Activity, Flame, Dumbbell, Footprints, Wind, BarChart3, Target, Droplet } from 'lucide-react';
-import type { BodyChangesState, ActivityLog } from '../types';
+import type { BodyChangesState, ActivityLog, FertilityTrackingState } from '../types';
 import meditationImg from '../assets/meditation.png';
 import { ENERGY_TREND_DATA } from '../data/mockData';
+import { CervicalMucusCard } from './fertility/CervicalMucusCard';
+import { BbtTrackingCard } from './fertility/BbtTrackingCard';
+import { HormoneAndLibidoCard } from './fertility/HormoneAndLibidoCard';
 
 interface FollicularSectionProps {
   bodyChanges: BodyChangesState;
   activities: ActivityLog[];
+  fertilityState: FertilityTrackingState;
   onOpenLogActivity: () => void;
   onUpdateBodyChanges: (newChanges: Partial<BodyChangesState>) => void;
+  onUpdateFertility: (newFertility: Partial<FertilityTrackingState>) => void;
 }
 
 export const FollicularSection: React.FC<FollicularSectionProps> = ({
   bodyChanges,
   activities,
+  fertilityState,
   onOpenLogActivity,
   onUpdateBodyChanges,
+  onUpdateFertility,
 }) => {
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
@@ -39,24 +46,32 @@ export const FollicularSection: React.FC<FollicularSectionProps> = ({
   };
 
   return (
-    <section className="bg-[#FFDEE9] rounded-[clamp(1.25rem,2.5vw,2rem)] p-[clamp(1rem,2vw,1.75rem)] border border-[#EBE6EC] shadow-section w-full min-w-0">
+    <section
+      aria-label="Follicular Phase Health and Fertility Overview"
+      className="bg-[#FFDEE9] rounded-[clamp(1.25rem,2.5vw,2rem)] p-[clamp(1rem,2vw,1.75rem)] border border-[#EBE6EC] shadow-section w-full min-w-0 flex flex-col gap-[clamp(0.875rem,1.8vw,1.25rem)]"
+    >
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-[clamp(1rem,1.8vw,1.5rem)]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-[18px] bg-white/70 backdrop-blur-md flex items-center justify-center shadow-icon border border-white/70 shrink-0">
             <Droplet className="w-5 h-5 text-[#E5469D] fill-[#E5469D]" />
           </div>
-          <h2 className="text-[clamp(1.25rem,1.8vw,1.5rem)] font-bold leading-tight tracking-[-0.75px] text-[#26214E]">
-            Follicular Phase
-          </h2>
+          <div>
+            <h2 className="text-[clamp(1.25rem,1.8vw,1.5rem)] font-bold leading-tight tracking-[-0.75px] text-[#26214E]">
+              Follicular Phase
+            </h2>
+            <p className="text-[12px] text-[#716D8D] font-normal sm:hidden">
+              Today, 21 June 2026
+            </p>
+          </div>
         </div>
-        <div className="text-[clamp(0.8rem,1vw,0.875rem)] text-[#716D8D] font-normal self-start sm:self-auto pl-1 sm:pl-0">
+        <div className="text-[clamp(0.8rem,1vw,0.875rem)] text-[#716D8D] font-medium self-start sm:self-auto hidden sm:block">
           Today, 21 June 2026
         </div>
       </div>
 
       {/* Top 2 Highlight Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-[clamp(0.875rem,1.8vw,1.25rem)] mb-[clamp(0.875rem,1.8vw,1.25rem)]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[clamp(0.875rem,1.8vw,1.25rem)]">
         {/* Card 1: Energy is rising */}
         <div className="bg-gradient-energy-card rounded-[clamp(1.5rem,3vw,3rem)] p-[clamp(1.2rem,2.2vw,1.75rem)] flex flex-col justify-between shadow-soft border border-white/60 min-h-[175px]">
           <div>
@@ -104,8 +119,34 @@ export const FollicularSection: React.FC<FollicularSectionProps> = ({
         </div>
       </div>
 
-      {/* Body Changes Card */}
-      <div className="bg-white rounded-[clamp(1.25rem,2vw,1.5rem)] p-[clamp(1.2rem,2vw,1.56rem)] border border-[#F3F4F6] shadow-soft mb-[clamp(0.875rem,1.8vw,1.25rem)]">
+      {/* 1. Cervical Mucus / Discharge Tracking Section */}
+      <CervicalMucusCard
+        selectedType={fertilityState.cervicalMucus}
+        onSelectType={(type) => onUpdateFertility({ cervicalMucus: type })}
+      />
+
+      {/* 2. Basal Body Temperature (BBT) & BBT Trend Section */}
+      <BbtTrackingCard
+        currentTempC={fertilityState.bbtTempC}
+        trendData={fertilityState.bbtTrend}
+        onUpdateTemp={(temp) => {
+          const updatedTrend = fertilityState.bbtTrend.map((pt) =>
+            pt.isToday ? { ...pt, tempC: temp } : pt
+          );
+          onUpdateFertility({ bbtTempC: temp, bbtTrend: updatedTrend });
+        }}
+      />
+
+      {/* 3. LH Ovulation Test & Libido Tracking Section */}
+      <HormoneAndLibidoCard
+        selectedLh={fertilityState.lhTest}
+        selectedLibido={fertilityState.libido}
+        onSelectLh={(lh) => onUpdateFertility({ lhTest: lh })}
+        onSelectLibido={(libido) => onUpdateFertility({ libido })}
+      />
+
+      {/* 4. Body Changes Card */}
+      <div className="bg-white rounded-[clamp(1.25rem,2vw,1.5rem)] p-[clamp(1.2rem,2vw,1.56rem)] border border-[#F3F4F6] shadow-soft">
         <h3 className="text-[clamp(1rem,1.4vw,1.125rem)] font-bold leading-tight text-[#1F2937] mb-4 sm:mb-5">
           Body Changes
         </h3>
@@ -297,7 +338,7 @@ export const FollicularSection: React.FC<FollicularSectionProps> = ({
         </div>
       </div>
 
-      {/* Energy & Fitness Card */}
+      {/* 5. Energy & Fitness Card */}
       <div className="bg-white rounded-[clamp(1.25rem,2vw,1.5rem)] p-[clamp(1.2rem,2vw,1.56rem)] border border-[#F3F4F6] shadow-soft">
         <div className="flex items-center justify-between gap-4 mb-5 sm:mb-6">
           <h3 className="text-[clamp(1rem,1.4vw,1.125rem)] font-bold leading-tight text-[#1F2937]">
