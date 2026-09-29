@@ -13,12 +13,12 @@ export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
   return (
     <div
       aria-live="polite"
-      className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-5 sm:right-5 z-[60] flex flex-col gap-2 sm:max-w-sm sm:w-full pointer-events-none"
     >
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto flex items-start gap-3 p-4 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 text-gray-800 animate-in fade-in slide-in-from-bottom-5 duration-300"
+          className="pointer-events-auto flex items-start gap-3 p-4 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 text-gray-800 animate-enter"
           role="alert"
         >
           {toast.type === 'info' ? (

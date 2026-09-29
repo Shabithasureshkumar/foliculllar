@@ -60,6 +60,56 @@ export type LhTestResult = 'negative' | 'low' | 'high' | 'peak';
 
 export type LibidoLevel = 'low' | 'medium' | 'high';
 
+export type FollicularMood = 'Happy' | 'Calm' | 'Neutral' | 'Irritable' | 'Sad';
+
+export type FollicularEnergy = 'Low' | 'Moderate' | 'High';
+
+export interface MedicationEntry {
+  id: string;
+  name: string;
+  dosage: string;
+  status: 'taken' | 'skipped' | 'pending';
+  time?: string;
+  icon?: string;
+  type?: string;
+  frequency?: string;
+  startDate?: string;
+  endDate?: string;
+  reminder?: boolean;
+}
+
+export type PeriodFlowType = 'Spotting' | 'Light' | 'Medium' | 'Heavy';
+export type CrampsLevelType = 'None' | 'Mild' | 'Moderate' | 'Severe';
+
+export interface PeriodLogData {
+  flow: PeriodFlowType;
+  cramps: CrampsLevelType;
+  clots: boolean;
+  notes: string;
+  dateStr?: string;
+}
+
+export interface FollicularDailyLogData {
+  cycleDay: number;
+  dateStr: string;
+  bbtTempC: number;
+  bbtTime: string;
+  bbtDevice: string;
+  bbtManualNotes?: string;
+  mood: FollicularMood;
+  energyLevel: FollicularEnergy;
+  cervicalMucus: CervicalMucusType;
+  lhTest: LhTestResult;
+  libido: LibidoLevel;
+  medications: MedicationEntry[];
+  periodLog?: PeriodLogData;
+  aiInsight?: {
+    title: string;
+    text: string;
+    chips: string[];
+  };
+}
+
 export interface BbtDataPoint {
   id: string;
   day: string;
@@ -77,7 +127,18 @@ export interface FertilityTrackingState {
   libido: LibidoLevel;
 }
 
-export type QuickLogCategory = 'flow' | 'symptoms' | 'mood' | 'weight' | 'sleep' | 'water' | 'cervical_mucus' | 'bbt' | 'lh_test' | 'libido';
+export type QuickLogCategory =
+  | 'flow'
+  | 'symptoms'
+  | 'mood'
+  | 'weight'
+  | 'sleep'
+  | 'water'
+  | 'cervical_mucus'
+  | 'bbt'
+  | 'lh_test'
+  | 'libido'
+  | 'medication';
 
 export interface ToastMessage {
   id: string;

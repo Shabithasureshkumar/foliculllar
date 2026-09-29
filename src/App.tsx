@@ -1,311 +1,394 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { CalendarCard } from './components/CalendarCard';
-import { FollicularSection } from './components/FollicularSection';
-import { WellnessMetricsCard } from './components/WellnessMetricsCard';
-import { UserProfileCard } from './components/sidebar/UserProfileCard';
-import { CycleSummaryCard } from './components/sidebar/CycleSummaryCard';
-import { InsightsCard } from './components/sidebar/InsightsCard';
-import { PersonalNotesCard } from './components/sidebar/PersonalNotesCard';
-import { ConnectedDevicesCard } from './components/sidebar/ConnectedDevicesCard';
-import { QuickLogCard } from './components/sidebar/QuickLogCard';
-import { LogActivityModal } from './components/modals/LogActivityModal';
-import { EditWellnessModal } from './components/modals/EditWellnessModal';
-import { QuickLogModal } from './components/modals/QuickLogModal';
-import { CalendarMonthModal } from './components/modals/CalendarMonthModal';
+import { TopNavigation } from './components/dashboard/TopNavigation';
+import { CycleTrackerHeader } from './components/dashboard/CycleTrackerHeader';
+import { TrackerTabs, type TrackerTabType } from './components/dashboard/TrackerTabs';
+import { CyclePhaseStatus } from './components/dashboard/CyclePhaseStatus';
+import { PhaseDescription } from './components/dashboard/PhaseDescription';
+import { VitalMetricCards } from './components/dashboard/VitalMetricCards';
+import { LutealMetricCards } from './components/dashboard/LutealMetricCards';
+import { AiRecommendation } from './components/dashboard/AiRecommendation';
+import { MedicationHistory } from './components/dashboard/MedicationHistory';
+import { CycleInsights } from './components/dashboard/CycleInsights';
+import { FollicularDailyLog } from './components/dailyLog/FollicularDailyLog';
+import { LogPeriodModal } from './components/modals/LogPeriodModal';
+import { AddMedicationModal } from './components/modals/AddMedicationModal';
+import { AskAvaModal } from './components/modals/AskAvaModal';
 import { Toast } from './components/Toast';
 
+import { PATIENT_PROFILE } from './data/mockData';
+import { PHASE_CONTENT } from './data/phaseContent';
 import {
-  INITIAL_DAYS,
-  INITIAL_BODY_CHANGES,
-  INITIAL_ACTIVITIES,
-  INITIAL_WELLNESS_METRICS,
-  INITIAL_CONNECTED_DEVICES,
-  INITIAL_FERTILITY_STATE,
-} from './data/mockData';
+  addDays,
+  addMonthsClamped,
+  calculateCycleInfo,
+  formatLongDate,
+  generateDaysAround,
+  getToday,
+  toDateKey,
+} from './utils/calendarUtils';
+import { cycleStore, getBbtContext, getMedicationHistory } from './services/cycleStore';
+import type { AvaContext } from './services/avaAssistant';
 import type {
   CycleDay,
-  BodyChangesState,
-  ActivityLog,
-  WellnessMetricsState,
-  ConnectedDevice,
-  QuickLogCategory,
   ToastMessage,
-  FertilityTrackingState,
+  CervicalMucusType,
+  FollicularDailyLogData,
+  PeriodLogData,
+  MedicationEntry,
 } from './types';
 
-export const App: React.FC = () => {
-  // State
-  const [days, setDays] = useState<CycleDay[]>(INITIAL_DAYS);
-  const [selectedDayId, setSelectedDayId] = useState<string>('day-21');
-  const [bodyChanges, setBodyChanges] = useState<BodyChangesState>(INITIAL_BODY_CHANGES);
-  const [activities, setActivities] = useState<ActivityLog[]>(INITIAL_ACTIVITIES);
-  const [wellnessMetrics, setWellnessMetrics] = useState<WellnessMetricsState>(INITIAL_WELLNESS_METRICS);
-  const [devices, setDevices] = useState<ConnectedDevice[]>(INITIAL_CONNECTED_DEVICES);
-  const [fertilityState, setFertilityState] = useState<FertilityTrackingState>(INITIAL_FERTILITY_STATE);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+// Tab to Route Path Mapping
+const TAB_ROUTES: Record<TrackerTabType, string> = {
+  Overview: '/overview',
+  Calendar: '/calendar',
+  'Daily Log': '/daily-log',
+  Insights: '/insights',
+  Settings: '/settings',
+};
 
-  // Modals state
-  const [isLogActivityOpen, setIsLogActivityOpen] = useState(false);
-  const [isEditWellnessOpen, setIsEditWellnessOpen] = useState(false);
-  const [isCalendarMonthOpen, setIsCalendarMonthOpen] = useState(false);
-  const [activeQuickLogCategory, setActiveQuickLogCategory] = useState<QuickLogCategory | null>(null);
+const ROUTE_TABS: Record<string, TrackerTabType> = {
+  '/overview': 'Overview',
+  '/calendar': 'Calendar',
+  '/daily-log': 'Daily Log',
+  '/insights': 'Insights',
+  '/settings': 'Settings',
+  'overview': 'Overview',
+  'calendar': 'Calendar',
+  'daily-log': 'Daily Log',
+  'insights': 'Insights',
+  'settings': 'Settings',
+};
+
+const getInitialTabFromLocation = (): TrackerTabType => {
+  if (typeof window === 'undefined') return 'Overview';
+  const pathname = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.replace('#', '').toLowerCase();
+
+  if (ROUTE_TABS[pathname]) return ROUTE_TABS[pathname];
+  if (ROUTE_TABS[hash]) return ROUTE_TABS[hash];
+
+  return 'Overview';
+};
+
+const STRIP_LENGTH = 7;
+
+// Seed today's record once, before first render, so Overview and Daily Log read the same data
+const initialToday = getToday();
+cycleStore.ensureSeeded(toDateKey(initialToday));
+
+export const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TrackerTabType>(getInitialTabFromLocation);
+
+  // Single source of truth for the date being viewed; everything else is derived from it
+  const [selectedDate, setSelectedDate] = useState<Date>(initialToday);
+  const [todayKey, setTodayKey] = useState(() => toDateKey(initialToday));
+  const dateKey = toDateKey(selectedDate);
+
+  const [log, setLogState] = useState<FollicularDailyLogData>(() => cycleStore.getFollicularLog(dateKey));
+  // Latest log, so several updates in the same tick merge instead of overwriting each other
+  const latestLog = useRef(log);
+  const setLog = useCallback((next: FollicularDailyLogData) => {
+    latestLog.current = next;
+    setLogState(next);
+  }, []);
+  // Snapshot of every saved day; history, strip dots and BBT baseline are derived from it
+  const [savedLogs, setSavedLogs] = useState(() => cycleStore.getAllLogs());
+
+  const [isLogPeriodOpen, setIsLogPeriodOpen] = useState(false);
+  const [isAddMedicationOpen, setIsAddMedicationOpen] = useState(false);
+  const [isAskAvaOpen, setIsAskAvaOpen] = useState(false);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const toastTimers = useRef(new Map<string, number>());
 
   // Toast Helper
-  const addToast = (title: string, description?: string, type: 'success' | 'info' = 'success') => {
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
-    setToasts((prev) => [...prev, { id, title, description, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
-  };
-
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
+    window.clearTimeout(toastTimers.current.get(id));
+    toastTimers.current.delete(id);
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
-  // Day selection
+  const addToast = useCallback(
+    (title: string, description?: string, type: 'success' | 'info' = 'success') => {
+      const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
+      setToasts((prev) => [...prev.slice(-2), { id, title, description, type }]);
+      toastTimers.current.set(id, window.setTimeout(() => removeToast(id), 3500));
+    },
+    [removeToast]
+  );
+
+  useEffect(() => {
+    const timers = toastTimers.current;
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, []);
+
+  // Keep "today" correct if the app stays open past midnight
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const key = toDateKey(getToday());
+      setTodayKey((prev) => (prev === key ? prev : key));
+    }, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // Sync Route with Tab
+  const handleTabChange = useCallback((tab: TrackerTabType) => {
+    setActiveTab(tab);
+    const path = TAB_ROUTES[tab];
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  }, []);
+
+  // Listen for browser back/forward history navigation
+  useEffect(() => {
+    const handlePopState = () => setActiveTab(getInitialTabFromLocation());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Another tab edited the same data: reload the visible log
+  useEffect(() => {
+    const handleStorage = () => {
+      setLog(cycleStore.getFollicularLog(dateKey));
+      setSavedLogs(cycleStore.getAllLogs());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [dateKey, setLog]);
+
+  // ---- Derived data ----
+  const { cycleDay, phase, phaseLabel } = calculateCycleInfo(selectedDate);
+  const phaseContent = PHASE_CONTENT[phase];
+
+  const savedKeys = useMemo(() => new Set(Object.keys(savedLogs)), [savedLogs]);
+  const days = useMemo(() => generateDaysAround(selectedDate, STRIP_LENGTH, savedKeys), [selectedDate, savedKeys]);
+  const medicationHistory = useMemo(() => getMedicationHistory(savedLogs), [savedLogs]);
+  const bbtContext = useMemo(() => getBbtContext(savedLogs, selectedDate), [savedLogs, selectedDate]);
+
+  const isTodaySelected = dateKey === todayKey;
+  const dateLabel = isTodaySelected ? `Today · ${formatLongDate(selectedDate)}` : formatLongDate(selectedDate);
+
+  // ---- Date navigation ----
+  const selectDate = useCallback((date: Date) => {
+    setSelectedDate(date);
+    setLog(cycleStore.getFollicularLog(toDateKey(date)));
+  }, [setLog]);
+
   const handleSelectDay = (day: CycleDay) => {
-    setSelectedDayId(day.id);
-    setDays((prev) =>
-      prev.map((d) => ({
-        ...d,
-        isSelected: d.id === day.id,
-      }))
-    );
-    addToast('Day Selected', `Viewing details for ${day.month} ${day.dayNumber} (CD ${day.cycleDay})`, 'info');
+    const [, y, m, d] = day.id.split('-').map(Number);
+    selectDate(new Date(y, m - 1, d));
   };
 
-  const handleTodayClick = () => {
-    const today = days.find((d) => d.dayNumber === 21) || days[3];
-    handleSelectDay(today);
+  // ---- Log persistence (every edit is written immediately, so nothing is lost on refresh) ----
+  const commitLog = (next: FollicularDailyLogData): boolean => {
+    setLog(next);
+    const ok = cycleStore.saveFollicularLog(dateKey, next);
+    setSavedLogs(ok ? cycleStore.getAllLogs() : (prev) => ({ ...prev, [dateKey]: next }));
+    if (!ok) addToast('Could not save', 'Browser storage is unavailable or full. Changes are kept until you reload.', 'info');
+    return ok;
   };
 
-  const handleShiftPeriod = (direction: 'prev' | 'next') => {
-    setDays((prev) =>
-      prev.map((d) => {
-        const delta = direction === 'next' ? 7 : -7;
-        const newDayNum = d.dayNumber + delta;
-        const newCycleDay = ((d.cycleDay + delta - 1 + 30) % 30) + 1;
-        return {
-          ...d,
-          dayNumber: newDayNum > 0 ? newDayNum : 30 + newDayNum,
-          cycleDay: newCycleDay,
-        };
-      })
-    );
-    addToast(direction === 'next' ? 'Next Cycle Week' : 'Previous Cycle Week', undefined, 'info');
+  const handleUpdateLog = (updated: Partial<FollicularDailyLogData>) => {
+    commitLog({ ...latestLog.current, ...updated });
   };
 
-  // Body changes update
-  const handleUpdateBodyChanges = (newChanges: Partial<BodyChangesState>) => {
-    setBodyChanges((prev) => ({ ...prev, ...newChanges }));
-    addToast('Body Changes Updated', undefined, 'success');
+  const handleSaveLog = () => {
+    if (!commitLog(latestLog.current)) return;
+    confetti({ particleCount: 55, spread: 70, origin: { y: 0.75 } });
+    addToast('Daily Log Saved', `Your ${formatLongDate(selectedDate)} log is saved and shown on Overview.`, 'success');
+    handleTabChange('Overview');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Fertility update
-  const handleUpdateFertility = (newFertility: Partial<FertilityTrackingState>) => {
-    setFertilityState((prev) => ({ ...prev, ...newFertility }));
-    addToast('Fertility Biomarkers Updated', undefined, 'success');
+  const handleSavePeriodLog = (periodData: PeriodLogData) => {
+    commitLog({ ...latestLog.current, periodLog: periodData });
+    setIsLogPeriodOpen(false);
+    confetti({ particleCount: 55, spread: 70, origin: { y: 0.6 } });
+    addToast('Period Log Saved', `Flow: ${periodData.flow} · Cramps: ${periodData.cramps}`, 'success');
   };
 
-  // Add Activity
-  const handleSaveActivity = (newActivity: Omit<ActivityLog, 'id'>) => {
-    const actId = `act-${Date.now()}`;
-    setActivities((prev) => {
-      const existsIndex = prev.findIndex((a) => a.type === newActivity.type);
-      if (existsIndex !== -1) {
-        const updated = [...prev];
-        updated[existsIndex] = {
-          ...updated[existsIndex],
-          durationMin: updated[existsIndex].durationMin + newActivity.durationMin,
-          targetMin: newActivity.targetMin,
-        };
-        return updated;
-      }
-      return [...prev, { ...newActivity, id: actId }];
-    });
-
-    confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.6 },
-    });
-
-    addToast('Activity Logged', `${newActivity.name} (+${newActivity.durationMin} min)`, 'success');
+  const handleSaveMedication = (newMed: MedicationEntry) => {
+    commitLog({ ...latestLog.current, medications: [...latestLog.current.medications, newMed] });
+    setIsAddMedicationOpen(false);
+    confetti({ particleCount: 45, spread: 60, origin: { y: 0.65 } });
+    addToast('Medication Added', `${newMed.name} (${newMed.dosage}) added to ${formatLongDate(selectedDate)}`, 'success');
   };
 
-  // Wellness Metrics Update
-  const handleSaveWellness = (updated: WellnessMetricsState) => {
-    setWellnessMetrics(updated);
-    addToast('Wellness Metrics Saved', 'Your daily health log has been updated', 'success');
+  const handleSelectMucus = (mucus: CervicalMucusType) => {
+    handleUpdateLog({ cervicalMucus: mucus });
+    addToast('Cervical Mucus Updated', `Logged: ${mucus.replace('_', ' ')}`, 'success');
   };
 
-  // Sync Device
-  const handleSyncDevice = (deviceId: string) => {
-    setDevices((prev) =>
-      prev.map((d) =>
-        d.id === deviceId
-          ? { ...d, lastSyncedText: 'Synced · just now', isSynced: true }
-          : d
-      )
-    );
-    addToast('Device Synced', 'Data successfully synchronized with health sensors', 'success');
+  const avaContext: AvaContext = {
+    phase,
+    phaseLabel,
+    cycleDay,
+    dateLabel: isTodaySelected ? 'today' : formatLongDate(selectedDate),
+    log,
+    daysUntilPeriod: PATIENT_PROFILE.cycleLengthDays - cycleDay + 1,
   };
 
-  // Save Note
-  const handleSaveNote = (noteText: string) => {
-    confetti({
-      particleCount: 40,
-      spread: 50,
-      origin: { y: 0.7 },
-    });
-    addToast('Personal Note Saved', noteText.slice(0, 45) + (noteText.length > 45 ? '...' : ''), 'success');
-  };
+  const aiSummary = `CD ${cycleDay} · ${phaseLabel}: BBT ${log.bbtTempC.toFixed(2)}°C, ${log.cervicalMucus.replace(
+    '_',
+    ' '
+  )} mucus, LH ${log.lhTest}, mood ${log.mood.toLowerCase()}.`;
 
-  // Quick Log Complete
-  const handleQuickLogComplete = (
-    msg: string,
-    metricUpdate?: Partial<WellnessMetricsState>,
-    fertilityUpdate?: Partial<FertilityTrackingState>
-  ) => {
-    if (metricUpdate) {
-      setWellnessMetrics((prev) => ({ ...prev, ...metricUpdate }));
-    }
-    if (fertilityUpdate) {
-      setFertilityState((prev) => ({ ...prev, ...fertilityUpdate }));
-    }
-    confetti({
-      particleCount: 45,
-      spread: 60,
-      origin: { y: 0.8 },
-    });
-    addToast('Quick Log Saved', msg, 'success');
-  };
+  const phaseRow = (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 w-full max-w-none items-stretch">
+      <div className="lg:col-span-4 w-full min-w-0">
+        <CyclePhaseStatus
+          cycleDay={cycleDay}
+          cycleLength={PATIENT_PROFILE.cycleLengthDays}
+          phaseName={phaseLabel}
+          statusText="Healthy"
+          accent={phaseContent.accent}
+          onSummaryClick={() => addToast('AI Summary', aiSummary, 'info')}
+        />
+      </div>
+      <div className="lg:col-span-8 w-full min-w-0">
+        <PhaseDescription
+          title={phaseContent.heroTitle}
+          text={phaseContent.heroText}
+          illustration={phaseContent.illustration}
+          onLogPeriodClick={() => setIsLogPeriodOpen(true)}
+          onViewTipsClick={() => addToast(`${phaseContent.badge} Phase Tips`, phaseContent.tips, 'info')}
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF] text-[#1F2937] flex flex-col items-center justify-start py-[clamp(1rem,2vw,1.7rem)] px-[clamp(0.75rem,2vw,1.875rem)] w-full overflow-x-hidden">
-      {/* Toast Notification Container */}
+    <div className="min-h-screen bg-white text-[#17152B] flex flex-col items-stretch justify-start py-[clamp(0.75rem,1.2vw,1.25rem)] px-[clamp(1rem,2.6vw,3rem)] w-full font-sans antialiased overflow-x-hidden selection:bg-pink-100 selection:text-pink-700">
       <Toast toasts={toasts} onDismiss={removeToast} />
 
-      {/* Main Responsive Grid Layout (Independent Column Heights) */}
-      <main className="w-full max-w-[1380px] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_clamp(17.5rem,22vw,20.5rem)] items-start gap-[clamp(1.25rem,2vw,1.56rem)]">
-        {/* Left / Main Content Column */}
-        <div
-          className="flex flex-col gap-[clamp(1.25rem,2vw,1.56rem)] w-full min-w-0"
-          role="region"
-          aria-label="Main Daily Health & Cycle Log"
-        >
-          {/* Daily Log Header & Top Calendar Section */}
-          <div className="flex flex-col gap-2.5 w-full min-w-0">
-            <h1 className="text-[clamp(1.5rem,2.2vw,1.8rem)] font-bold leading-tight text-[#111827] tracking-tight">
-              Daily Log
-            </h1>
+      <div className="w-full max-w-[2560px] mx-auto flex flex-col gap-[clamp(0.75rem,1.1vw,1.125rem)]">
+        {/* 1. TOP NAVIGATION */}
+        <TopNavigation
+          activeNavItem="Dashboard"
+          onSelectNav={(item) => {
+            if (item !== 'Dashboard') addToast(item, `${item} isn't available in the Cycle Tracker view.`, 'info');
+          }}
+          onSearchClick={() => addToast('Search', 'Search health records and insights', 'info')}
+          onSettingsClick={() => handleTabChange('Settings')}
+          onNotificationsClick={() => addToast('Notifications', 'No new alerts for today', 'info')}
+        />
 
-            {/* Top Calendar Navigation Card */}
-            <CalendarCard
-              days={days}
-              selectedDayId={selectedDayId}
-              onSelectDay={handleSelectDay}
-              onOpenMonthPicker={() => setIsCalendarMonthOpen(true)}
-              onPrevPeriod={() => handleShiftPeriod('prev')}
-              onNextPeriod={() => handleShiftPeriod('next')}
-              onTodayClick={handleTodayClick}
-            />
-          </div>
-
-          {/* Follicular Phase Pink Container Section (with Cervical Mucus, BBT & BBT Trend, LH & Libido) */}
-          <FollicularSection
-            bodyChanges={bodyChanges}
-            activities={activities}
-            fertilityState={fertilityState}
-            onOpenLogActivity={() => setIsLogActivityOpen(true)}
-            onUpdateBodyChanges={handleUpdateBodyChanges}
-            onUpdateFertility={handleUpdateFertility}
-          />
-
-          {/* Wellness Metrics Bottom Card */}
-          <WellnessMetricsCard
-            metrics={wellnessMetrics}
-            onOpenEditLog={() => setIsEditWellnessOpen(true)}
-            onQuickLogMetric={(metricKey) => {
-              if (metricKey === 'waterCurrentL') setActiveQuickLogCategory('water');
-              else if (metricKey === 'sleepHours') setActiveQuickLogCategory('sleep');
-              else if (metricKey === 'weightKg') setActiveQuickLogCategory('weight');
-              else if (metricKey === 'mood') setActiveQuickLogCategory('mood');
-              else setIsEditWellnessOpen(true);
-            }}
-          />
-        </div>
-
-        {/* Right Sidebar Column */}
-        <aside
-          className="w-full flex flex-col gap-[clamp(1.25rem,2vw,1.5rem)] lg:border-l lg:border-[#F3F4F6] lg:pl-[clamp(1rem,1.8vw,1.5rem)] pt-1 lg:pt-0 min-w-0 self-start"
-          aria-label="User Profile & Quick Actions Sidebar"
-        >
-          {/* 1. User Profile Card */}
-          <UserProfileCard />
-
-          {/* 2. Cycle Summary */}
-          <CycleSummaryCard
-            onSelectPhase={(phase) =>
-              addToast(phase, 'Viewing phase predictions and hormonal guidance', 'info')
-            }
-          />
-
-          {/* 3. Today's Insights */}
-          <InsightsCard />
-
-          {/* 4. Personal Notes */}
-          <PersonalNotesCard onSaveNote={handleSaveNote} />
-
-          {/* 5. Connected Devices */}
-          <ConnectedDevicesCard
-            devices={devices}
-            onSyncDevice={handleSyncDevice}
-          />
-
-          {/* 6. Quick Log Actions */}
-          <QuickLogCard
-            onSelectCategory={(cat) => setActiveQuickLogCategory(cat)}
-          />
-        </aside>
-      </main>
-
-      {/* Interactive Modals */}
-      <LogActivityModal
-        isOpen={isLogActivityOpen}
-        onClose={() => setIsLogActivityOpen(false)}
-        onSaveActivity={handleSaveActivity}
-      />
-
-      <EditWellnessModal
-        isOpen={isEditWellnessOpen}
-        initialMetrics={wellnessMetrics}
-        onClose={() => setIsEditWellnessOpen(false)}
-        onSave={handleSaveWellness}
-      />
-
-      <QuickLogModal
-        category={activeQuickLogCategory}
-        currentMetrics={wellnessMetrics}
-        currentFertility={fertilityState}
-        onClose={() => setActiveQuickLogCategory(null)}
-        onLogComplete={handleQuickLogComplete}
-      />
-
-      <CalendarMonthModal
-        isOpen={isCalendarMonthOpen}
-        onClose={() => setIsCalendarMonthOpen(false)}
-        onSelectDate={(d) => {
-          const matchedDay = days.find((day) => day.dayNumber === d);
-          if (matchedDay) {
-            handleSelectDay(matchedDay);
-          } else {
-            addToast('Selected June ' + d, 'Viewing logs for selected date', 'info');
+        {/* 2. CYCLE TRACKER HEADER */}
+        <CycleTrackerHeader
+          onProfileClick={() =>
+            addToast(
+              'Patient Details',
+              `${PATIENT_PROFILE.name} · ${PATIENT_PROFILE.gender} ${PATIENT_PROFILE.age} · Patient ID ${PATIENT_PROFILE.id}`,
+              'info'
+            )
           }
-        }}
-      />
+        />
+
+        {/* 3. SECONDARY TAB NAVIGATION */}
+        <TrackerTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+        {/* TAB 1: OVERVIEW */}
+        {activeTab === 'Overview' && (
+          <main className="w-full max-w-none flex flex-col gap-[clamp(0.75rem,1.1vw,1.125rem)] animate-enter">
+            {phaseRow}
+
+            {/* Metric cards read the same saved log the Daily Log writes; luteal days get luteal metrics */}
+            {phase === 'luteal' ? (
+              <LutealMetricCards
+                bbtTempC={log.bbtTempC}
+                bbtBaseline={bbtContext.baseline}
+                bbtPrevious={bbtContext.previous}
+                isToday={isTodaySelected}
+                mood={log.mood}
+                energyLevel={log.energyLevel}
+                periodLog={log.periodLog}
+                onOpenDailyLog={() => handleTabChange('Daily Log')}
+              />
+            ) : (
+            <VitalMetricCards
+              bbtTempC={log.bbtTempC}
+              bbtBaseline={bbtContext.baseline}
+              bbtPrevious={bbtContext.previous}
+              bbtPhaseNote={phaseContent.bbtNote}
+              isToday={isTodaySelected}
+              selectedMucus={log.cervicalMucus}
+              lhTest={log.lhTest}
+              libido={log.libido}
+              onSelectMucus={handleSelectMucus}
+              onOpenDailyLog={() => handleTabChange('Daily Log')}
+            />
+            )}
+
+            <AiRecommendation
+              text={phaseContent.recommendation.text}
+              chips={phaseContent.recommendation.chips}
+              onAskAvaClick={() => setIsAskAvaOpen(true)}
+              onChipClick={(chip) => addToast(`Recommendation: ${chip}`, 'Added to today’s goals', 'success')}
+            />
+
+            <MedicationHistory medications={medicationHistory} onAddMedication={() => setIsAddMedicationOpen(true)} />
+
+            <CycleInsights energyLevel={log.energyLevel} mood={log.mood} hormone={phaseContent.hormone} />
+          </main>
+        )}
+
+        {/* TAB 2: CALENDAR (intentionally blank for now) */}
+        {activeTab === 'Calendar' && <main className="w-full" aria-label="Calendar" />}
+
+        {/* TAB 3: DAILY LOG */}
+        {activeTab === 'Daily Log' && (
+          <FollicularDailyLog
+            days={days}
+            selectedDate={selectedDate}
+            todayKey={todayKey}
+            cycleDay={cycleDay}
+            phase={phase}
+            phaseLabel={phaseLabel}
+            logData={log}
+            onSelectDay={handleSelectDay}
+            onPrevDay={() => selectDate(addDays(selectedDate, -1))}
+            onNextDay={() => selectDate(addDays(selectedDate, 1))}
+            onPrevMonth={() => selectDate(addMonthsClamped(selectedDate, -1))}
+            onNextMonth={() => selectDate(addMonthsClamped(selectedDate, 1))}
+            onTodayClick={() => selectDate(getToday())}
+            onUpdateLog={handleUpdateLog}
+            onSaveLog={handleSaveLog}
+            onAddMedication={() => setIsAddMedicationOpen(true)}
+          />
+        )}
+
+        {/* TAB 4: INSIGHTS (intentionally blank for now) */}
+        {activeTab === 'Insights' && <main className="w-full" aria-label="Insights" />}
+
+        {/* TAB 5: SETTINGS (intentionally blank for now) */}
+        {activeTab === 'Settings' && <main className="w-full" aria-label="Settings" />}
+
+        {/* Modals are keyed by open state + date so each opening starts fresh for the viewed day */}
+        <LogPeriodModal
+          key={`period-${dateKey}-${isLogPeriodOpen}`}
+          isOpen={isLogPeriodOpen}
+          initialData={log.periodLog}
+          dateLabel={dateLabel}
+          onClose={() => setIsLogPeriodOpen(false)}
+          onSave={handleSavePeriodLog}
+        />
+
+        <AddMedicationModal
+          key={`med-${dateKey}-${isAddMedicationOpen}`}
+          isOpen={isAddMedicationOpen}
+          defaultDate={selectedDate}
+          onClose={() => setIsAddMedicationOpen(false)}
+          onSave={handleSaveMedication}
+        />
+
+        <AskAvaModal
+          key={`ava-${isAskAvaOpen}`}
+          isOpen={isAskAvaOpen}
+          context={avaContext}
+          onClose={() => setIsAskAvaOpen(false)}
+        />
+      </div>
     </div>
   );
 };
