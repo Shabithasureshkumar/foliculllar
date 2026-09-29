@@ -10,12 +10,13 @@ import { CARD, CLICKABLE, clickableProps } from './metricCardStyles';
 import { CardHeader } from './MetricCardHeader';
 
 interface LutealMetricCardsProps {
-  bbtTempC: number;
+  /** Tracked values are null when nothing is logged for the day */
+  bbtTempC: number | null;
   bbtBaseline: number | null;
   bbtPrevious: number | null;
   isToday: boolean;
-  mood: FollicularMood;
-  energyLevel: FollicularEnergy;
+  mood: FollicularMood | null;
+  energyLevel: FollicularEnergy | null;
   periodLog?: FollicularDailyLogData['periodLog'];
   onOpenDailyLog: () => void;
 }
@@ -59,22 +60,23 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
   onOpenDailyLog,
 }) => {
   // --- BBT: after ovulation readings should sit above the follicular baseline ---
-  const delta = bbtBaseline !== null ? bbtTempC - bbtBaseline : null;
-  const trendDiff = bbtPrevious !== null ? bbtTempC - bbtPrevious : null;
+  const delta = bbtTempC !== null && bbtBaseline !== null ? bbtTempC - bbtBaseline : null;
+  const trendDiff = bbtTempC !== null && bbtPrevious !== null ? bbtTempC - bbtPrevious : null;
   const trend = trendDiff === null ? null : trendDiff > 0.04 ? 'Rising' : trendDiff < -0.04 ? 'Falling' : 'Stable';
   const TrendIcon = trend === 'Rising' ? TrendingUp : trend === 'Falling' ? TrendingDown : Minus;
-  const elevated = delta !== null ? delta >= 0.2 : bbtTempC >= 36.5;
-  const inNormalRange = bbtTempC >= 35.8 && bbtTempC <= 37.3;
+  const elevated = delta !== null ? delta >= 0.2 : bbtTempC !== null && bbtTempC >= 36.5;
+  const inNormalRange = bbtTempC !== null && bbtTempC >= 35.8 && bbtTempC <= 37.3;
 
   // --- PMS symptoms: counted only from what was actually logged ---
+  const loggedAnything = mood !== null || energyLevel !== null || !!periodLog;
   const symptoms: string[] = [];
   if (mood === 'Irritable' || mood === 'Sad') symptoms.push('Mood changes');
   if (energyLevel === 'Low') symptoms.push('Fatigue');
   if (periodLog && periodLog.cramps !== 'None') symptoms.push(`${periodLog.cramps} cramps`);
-  const pmsTitle = ['None', 'Mild', 'Moderate', 'Noticeable'][symptoms.length];
+  const pmsTitle = loggedAnything ? ['None', 'Mild', 'Moderate', 'Noticeable'][symptoms.length] : 'Not logged';
 
-  const moodInfo = MOOD_INFO[mood];
-  const energy = ENERGY_INFO[energyLevel];
+  const moodInfo = mood !== null ? MOOD_INFO[mood] : null;
+  const energy = energyLevel !== null ? ENERGY_INFO[energyLevel] : null;
 
   return (
     <div className="grid grid-cols-1 min-[560px]:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none items-stretch">
@@ -88,7 +90,11 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
 
         <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-3">
           <span className="text-metric font-bold text-[#17152B]">
-            {delta !== null ? `${delta < 0 ? '−' : '+'}${Math.abs(delta).toFixed(2)}°` : `${bbtTempC.toFixed(2)}°`}
+            {bbtTempC === null
+              ? 'Not logged'
+              : delta !== null
+                ? `${delta < 0 ? '−' : '+'}${Math.abs(delta).toFixed(2)}°`
+                : `${bbtTempC.toFixed(2)}°`}
           </span>
           {trend && (
             <span
@@ -102,7 +108,9 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         </div>
 
         <p className="text-caption text-[#68708A] mt-2">
-          {delta !== null ? (
+          {bbtTempC === null ? (
+            <>No temperature logged {isToday ? 'today' : 'for this day'}. </>
+          ) : delta !== null ? (
             <>
               {isToday ? "Today's" : "This day's"} reading is{' '}
               <strong className="text-[#17152B] font-semibold">{Math.abs(delta).toFixed(2)}°C</strong>{' '}
@@ -111,7 +119,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
           ) : (
             <>
               {isToday ? "Today's" : "This day's"} reading is{' '}
-              <strong className="text-[#17152B] font-semibold">{bbtTempC.toFixed(2)}°C</strong>.{' '}
+              <strong className="text-[#17152B] font-semibold">{bbtTempC?.toFixed(2)}°C</strong>.{' '}
             </>
           )}
           {elevated
@@ -119,7 +127,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
             : 'A drop back to baseline often signals your period is near.'}
         </p>
 
-        <div className="mt-auto pt-3">
+        <div className={`mt-auto pt-3 ${bbtTempC === null ? 'hidden' : ''}`}>
           <span
             className={`text-[11px] sm:text-[12px] font-semibold px-3 py-1 rounded-full inline-block ${
               !inNormalRange ? 'bg-amber-50 text-amber-700' : elevated ? 'bg-[#FCE7F3] text-[#BE185D]' : 'bg-[#DCFCE7] text-[#15803D]'
@@ -143,7 +151,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         <div className="relative z-10 mt-3 max-w-[62%]">
           <span className="text-metric font-bold text-[#17152B] block">{pmsTitle}</span>
           <p className="text-body text-[#68708A] mt-1">
-            {symptoms.length ? symptoms.join(' · ') : 'No PMS signs logged'}
+            {symptoms.length ? symptoms.join(' · ') : loggedAnything ? 'No PMS signs logged' : 'Add mood & energy in the Daily Log'}
           </p>
         </div>
 
@@ -155,34 +163,41 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
       </div>
 
       {/* 3. Mood */}
-      <div {...clickableProps(onOpenDailyLog, `Mood: ${mood}. Open Daily Log to update`)} className={`${CARD} ${CLICKABLE}`}>
+      <div {...clickableProps(onOpenDailyLog, `Mood: ${mood ?? 'not logged'}. Open Daily Log to update`)} className={`${CARD} ${CLICKABLE}`}>
         <div className="relative z-10 flex items-center justify-between gap-2">
           <CardHeader
             icon={<Smile className="w-3.5 h-3.5 stroke-[2.3]" />}
             iconBg="bg-[#F3E8FF] text-[#8B5CF6]"
             title="Mood"
           />
-          <span className="bg-[#F3E8FF] text-[#8B5CF6] text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
-            {moodInfo.badge}
-          </span>
+          {moodInfo && (
+            <span className="bg-[#F3E8FF] text-[#8B5CF6] text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
+              {moodInfo.badge}
+            </span>
+          )}
         </div>
 
         <div className="relative z-10 mt-3 max-w-[58%]">
-          <span className="text-metric font-bold text-[#17152B] block">{mood}</span>
-          <p className="text-body text-[#68708A] mt-1">{moodInfo.subtitle}</p>
+          <span className="text-metric font-bold text-[#17152B] block">{mood ?? 'Not logged'}</span>
+          <p className="text-body text-[#68708A] mt-1">{moodInfo ? moodInfo.subtitle : 'Add it in the Daily Log'}</p>
         </div>
 
-        <img
-          src={moodInfo.img}
-          alt=""
-          width={275}
-          height={275}
-          className="absolute right-4 bottom-4 w-[clamp(64px,28%,96px)] aspect-square rounded-full object-cover pointer-events-none select-none"
-        />
+        {moodInfo && (
+          <img
+            src={moodInfo.img}
+            alt=""
+            width={275}
+            height={275}
+            className="absolute right-4 bottom-4 w-[clamp(64px,28%,96px)] aspect-square rounded-full object-cover pointer-events-none select-none"
+          />
+        )}
       </div>
 
       {/* 4. Energy / fatigue */}
-      <div {...clickableProps(onOpenDailyLog, `Fatigue level: ${energy.title}. Open Daily Log to update`)} className={`${CARD} ${CLICKABLE}`}>
+      <div
+        {...clickableProps(onOpenDailyLog, `Fatigue level: ${energy?.title ?? 'not logged'}. Open Daily Log to update`)}
+        className={`${CARD} ${CLICKABLE}`}
+      >
         <div className="relative z-10">
           <CardHeader
             icon={<Zap className="w-3.5 h-3.5 stroke-[2.3]" />}
@@ -192,8 +207,8 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         </div>
 
         <div className="relative z-10 mt-3 max-w-[62%]">
-          <span className="text-metric font-bold text-[#17152B] block">{energy.title}</span>
-          <p className="text-body text-[#68708A] mt-1">{energy.subtitle}</p>
+          <span className="text-metric font-bold text-[#17152B] block">{energy?.title ?? 'Not logged'}</span>
+          <p className="text-body text-[#68708A] mt-1">{energy?.subtitle ?? 'Add your energy in the Daily Log'}</p>
         </div>
 
         {/* 3-step energy meter, mirrors the LH strip position on the follicular card */}
@@ -202,13 +217,17 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
             <span
               key={step}
               className="h-2 w-8 sm:w-9 rounded-full"
-              style={{ backgroundColor: step <= energy.level ? energy.color : '#F3F4F6' }}
+              style={{ backgroundColor: energy && step <= energy.level ? energy.color : '#F3F4F6' }}
             />
           ))}
         </div>
 
         <IconArt bg="bg-gradient-to-br from-[#FFF7ED] to-[#FEF3C7]">
-          <energy.Icon className="w-1/2 h-1/2" style={{ color: energy.color }} strokeWidth={1.8} />
+          {energy ? (
+            <energy.Icon className="w-1/2 h-1/2" style={{ color: energy.color }} strokeWidth={1.8} />
+          ) : (
+            <BatteryMedium className="w-1/2 h-1/2 text-[#D1D5DB]" strokeWidth={1.8} />
+          )}
         </IconArt>
       </div>
     </div>

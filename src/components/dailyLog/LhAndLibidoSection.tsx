@@ -3,10 +3,11 @@ import { TestTube, Flame, Heart, Sparkles, AlertCircle } from 'lucide-react';
 import type { LhTestResult, LibidoLevel } from '../../types';
 
 interface LhAndLibidoSectionProps {
-  selectedLh: LhTestResult;
-  selectedLibido: LibidoLevel;
-  onSelectLh: (lh: LhTestResult) => void;
-  onSelectLibido: (libido: LibidoLevel) => void;
+  selectedLh: LhTestResult | null;
+  selectedLibido: LibidoLevel | null;
+  /** Receive null when the selected option is clicked again (clears it) */
+  onSelectLh: (lh: LhTestResult | null) => void;
+  onSelectLibido: (libido: LibidoLevel | null) => void;
 }
 
 export const LhAndLibidoSection: React.FC<LhAndLibidoSectionProps> = ({
@@ -78,8 +79,8 @@ export const LhAndLibidoSection: React.FC<LhAndLibidoSectionProps> = ({
 
           {/* 4 Progression Cards */}
           <div
-            role="radiogroup"
-            aria-label="LH Ovulation Test"
+            role="group"
+            aria-label="LH ovulation test result"
             className="grid grid-cols-2 sm:grid-cols-4 gap-2"
           >
             {lhOptions.map((opt) => {
@@ -88,10 +89,9 @@ export const LhAndLibidoSection: React.FC<LhAndLibidoSectionProps> = ({
                 <button
                   key={opt.value}
                   type="button"
-                  role="radio"
-                  aria-checked={isSelected}
+                  aria-pressed={isSelected}
                   data-testid={`lh-option-${opt.value}`}
-                  onClick={() => onSelectLh(opt.value)}
+                  onClick={() => onSelectLh(isSelected ? null : opt.value)}
                   className={`p-2.5 rounded-[18px] border flex flex-col items-center justify-between text-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 min-h-[92px] ${
                     isSelected
                       ? 'bg-[#FFF0F6] border-[#F43F8F] shadow-2xs scale-102'
@@ -157,8 +157,8 @@ export const LhAndLibidoSection: React.FC<LhAndLibidoSectionProps> = ({
 
           {/* 3 Selectable Options */}
           <div
-            role="radiogroup"
-            aria-label="Libido Desire Level"
+            role="group"
+            aria-label="Libido and desire level"
             className="grid grid-cols-3 gap-2"
           >
             {libidoOptions.map((opt) => {
@@ -167,10 +167,9 @@ export const LhAndLibidoSection: React.FC<LhAndLibidoSectionProps> = ({
                 <button
                   key={opt.value}
                   type="button"
-                  role="radio"
-                  aria-checked={isSelected}
+                  aria-pressed={isSelected}
                   data-testid={`libido-option-${opt.value}`}
-                  onClick={() => onSelectLibido(opt.value)}
+                  onClick={() => onSelectLibido(isSelected ? null : opt.value)}
                   className={`p-3 rounded-[18px] border flex flex-col items-center justify-between text-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 min-h-[92px] ${
                     isSelected
                       ? 'bg-[#FFF0F6] border-[#F43F8F] shadow-2xs scale-102'

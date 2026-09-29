@@ -38,7 +38,7 @@ type UnknownRecord = Record<string, unknown>;
 
 const isRecord = (v: unknown): v is UnknownRecord => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-const pick = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T =>
+const pick = <T extends string, F extends T | null>(value: unknown, allowed: readonly T[], fallback: F): T | F =>
   typeof value === 'string' && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
 
 const str = (value: unknown, fallback = ''): string => (typeof value === 'string' ? value : fallback);
@@ -54,15 +54,15 @@ const storage = (): Storage | null => {
 const createEmptyLog = (date: Date): FollicularDailyLogData => ({
   cycleDay: calculateCycleInfo(date).cycleDay,
   dateStr: formatLongDate(date),
-  bbtTempC: 36.4,
+  bbtTempC: null,
   bbtTime: '07:30 AM',
   bbtDevice: 'Connected Thermometer',
   bbtManualNotes: '',
-  mood: 'Neutral',
-  energyLevel: 'Moderate',
-  cervicalMucus: 'creamy',
-  lhTest: 'negative',
-  libido: 'medium',
+  mood: null,
+  energyLevel: null,
+  cervicalMucus: null,
+  lhTest: null,
+  libido: null,
   medications: [],
 });
 
@@ -175,8 +175,6 @@ export const cycleStore = {
     cycleStore.saveFollicularLog(todayKey, normalizeLog(INITIAL_FOLLICULAR_LOG, date));
   },
 
-  hasLog: (dateKey: string): boolean => readRaw(dateKey) !== undefined,
-
   /** Saved record for a date, or a clean default record if nothing was logged. */
   getFollicularLog: (dateKey: string): FollicularDailyLogData => {
     const date = parseDateKey(dateKey) ?? new Date();
@@ -234,7 +232,7 @@ export const getBbtContext = (
   const readings: number[] = [];
   for (let offset = 1; offset <= days; offset++) {
     const log = logs[toDateKey(addDays(date, -offset))];
-    if (log) readings.push(log.bbtTempC);
+    if (log?.bbtTempC != null) readings.push(log.bbtTempC);
   }
   const baseline = readings.length ? readings.reduce((s, t) => s + t, 0) / readings.length : null;
   return { baseline, previous: readings[0] ?? null };

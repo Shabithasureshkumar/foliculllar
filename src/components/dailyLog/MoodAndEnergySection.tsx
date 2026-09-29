@@ -9,10 +9,11 @@ import moodIrritable from '../../assets/mood_irritable.png';
 import moodSad from '../../assets/mood_sad.png';
 
 interface MoodAndEnergySectionProps {
-  selectedMood: FollicularMood;
-  selectedEnergy: FollicularEnergy;
-  onSelectMood: (mood: FollicularMood) => void;
-  onSelectEnergy: (energy: FollicularEnergy) => void;
+  selectedMood: FollicularMood | null;
+  selectedEnergy: FollicularEnergy | null;
+  /** Receives null when the selected option is clicked again (clears it) */
+  onSelectMood: (mood: FollicularMood | null) => void;
+  onSelectEnergy: (energy: FollicularEnergy | null) => void;
 }
 
 export const MoodAndEnergySection: React.FC<MoodAndEnergySectionProps> = ({
@@ -64,7 +65,7 @@ export const MoodAndEnergySection: React.FC<MoodAndEnergySectionProps> = ({
           </p>
 
           {/* 5 Faces Grid */}
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+          <div role="group" aria-label="Mood" className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {moodOptions.map((opt) => {
               const isSelected = selectedMood === opt.type;
               return (
@@ -73,7 +74,7 @@ export const MoodAndEnergySection: React.FC<MoodAndEnergySectionProps> = ({
                   type="button"
                   aria-pressed={isSelected}
                   data-testid={`mood-option-${opt.type}`}
-                  onClick={() => onSelectMood(opt.type)}
+                  onClick={() => onSelectMood(isSelected ? null : opt.type)}
                   className={`flex flex-col items-center justify-between p-2 rounded-[18px] border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 min-h-[72px] ${
                     isSelected
                       ? 'bg-[#FFF0F6] border-[#F43F8F] shadow-2xs scale-102'
@@ -124,7 +125,7 @@ export const MoodAndEnergySection: React.FC<MoodAndEnergySectionProps> = ({
           </p>
 
           {/* 3 Energy Level Options */}
-          <div className="grid grid-cols-3 gap-2">
+          <div role="group" aria-label="Energy level" className="grid grid-cols-3 gap-2">
             {energyOptions.map((opt) => {
               const isSelected = selectedEnergy === opt.type;
               return (
@@ -133,7 +134,7 @@ export const MoodAndEnergySection: React.FC<MoodAndEnergySectionProps> = ({
                   type="button"
                   aria-pressed={isSelected}
                   data-testid={`energy-option-${opt.type}`}
-                  onClick={() => onSelectEnergy(opt.type)}
+                  onClick={() => onSelectEnergy(isSelected ? null : opt.type)}
                   className={`flex flex-col items-center justify-center p-3 rounded-[18px] border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 min-h-[72px] ${
                     isSelected
                       ? 'bg-[#FFF0F6] border-[#F43F8F] shadow-2xs scale-102'

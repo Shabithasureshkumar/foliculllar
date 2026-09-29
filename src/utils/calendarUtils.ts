@@ -1,7 +1,7 @@
 import type { CycleDay, PhaseType } from '../types';
 import { PATIENT_PROFILE } from '../data/mockData';
 
-export const MONTH_NAMES = [
+const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
@@ -19,12 +19,12 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const DATE_KEY_PATTERN = /^day-(\d{4})-(\d{2})-(\d{2})$/;
 
 // Returns the exact number of days in a month (1-indexed day count)
-export const getDaysInMonth = (year: number, monthIndex: number): number => {
+const getDaysInMonth = (year: number, monthIndex: number): number => {
   return new Date(year, monthIndex + 1, 0).getDate();
 };
 
 // Local calendar date with the time stripped
-export const startOfDay = (date: Date): Date =>
+const startOfDay = (date: Date): Date =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 export const getToday = (): Date => startOfDay(new Date());
@@ -38,9 +38,6 @@ export const addMonthsClamped = (date: Date, amount: number): Date => {
   const maxDay = getDaysInMonth(target.getFullYear(), target.getMonth());
   return new Date(target.getFullYear(), target.getMonth(), Math.min(date.getDate(), maxDay));
 };
-
-export const isSameDay = (a: Date, b: Date): boolean =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
 // Storage / identity key for a calendar day, e.g. "day-2026-09-29"
 export const toDateKey = (date: Date): string =>

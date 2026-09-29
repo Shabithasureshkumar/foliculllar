@@ -19,7 +19,7 @@ export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
         <div
           key={toast.id}
           className="pointer-events-auto flex items-start gap-3 p-4 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 text-gray-800 animate-enter"
-          role="alert"
+          role="status"
         >
           {toast.type === 'info' ? (
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />

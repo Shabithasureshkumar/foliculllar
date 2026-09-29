@@ -9,12 +9,13 @@ const DEVICE_OPTIONS = ['Connected Thermometer', 'Manual Oral Thermometer', 'App
 const PRESETS = [36.3, 36.5, 36.35, 36.4, 36.45];
 
 interface BbtAndMedicationSectionProps {
-  bbtTempC: number;
+  /** null = not logged for this day */
+  bbtTempC: number | null;
   bbtTime: string;
   bbtDevice: string;
   bbtManualNotes?: string;
   medications: MedicationEntry[];
-  onUpdateBbtTemp: (temp: number) => void;
+  onUpdateBbtTemp: (temp: number | null) => void;
   onUpdateBbtTime: (time: string) => void;
   onUpdateBbtDevice: (device: string) => void;
   onUpdateBbtNotes: (notes: string) => void;
@@ -37,16 +38,20 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
 }) => {
   const [localInput, setLocalInput] = useState<string | null>(null);
 
-  const displayTemp = localInput !== null ? localInput : bbtTempC.toFixed(2);
+  const displayTemp = localInput !== null ? localInput : bbtTempC !== null ? bbtTempC.toFixed(2) : '';
   const parsedLocal = localInput !== null ? parseFloat(localInput) : bbtTempC;
-  const isInputInvalid = localInput !== null && !(parsedLocal >= BBT_MIN && parsedLocal <= BBT_MAX);
+  // An empty field is valid (it clears the reading); anything else must be a number in range
+  const isInputInvalid =
+    localInput !== null && localInput.trim() !== '' && !(parsedLocal !== null && parsedLocal >= BBT_MIN && parsedLocal <= BBT_MAX);
+  // Steppers start from a typical waking temperature when nothing is logged yet
+  const stepBase = bbtTempC ?? 36.4;
 
   // Keep previously saved custom values selectable
   const timeOptions = TIME_OPTIONS.includes(bbtTime) ? TIME_OPTIONS : [bbtTime, ...TIME_OPTIONS];
   const deviceOptions = DEVICE_OPTIONS.includes(bbtDevice) ? DEVICE_OPTIONS : [bbtDevice, ...DEVICE_OPTIONS];
 
   const handleStep = (delta: number) => {
-    const next = Math.round((bbtTempC + delta) * 100) / 100;
+    const next = Math.round((stepBase + (bbtTempC === null ? 0 : delta)) * 100) / 100;
     if (next >= BBT_MIN && next <= BBT_MAX) {
       setLocalInput(null);
       onUpdateBbtTemp(next);
@@ -55,6 +60,10 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalInput(e.target.value);
+    if (e.target.value.trim() === '') {
+      onUpdateBbtTemp(null);
+      return;
+    }
     const parsed = parseFloat(e.target.value);
     if (!isNaN(parsed) && parsed >= BBT_MIN && parsed <= BBT_MAX) {
       onUpdateBbtTemp(Math.round(parsed * 100) / 100);
@@ -105,6 +114,7 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
                     onBlur={() => setLocalInput(null)}
                     className="w-[5.5ch] min-w-0 text-metric font-bold text-[#17152B] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     aria-label="Basal body temperature in degrees Celsius"
+                    placeholder="--.--"
                   />
                   <span className="text-[16px] font-bold text-[#F43F8F]">°C</span>
                 </div>
@@ -114,7 +124,7 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
                   <button
                     type="button"
                     onClick={() => handleStep(0.05)}
-                    disabled={bbtTempC + 0.05 > BBT_MAX}
+                    disabled={stepBase + 0.05 > BBT_MAX}
                     className="disabled:opacity-40 disabled:cursor-not-allowed w-8 h-8 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8B5CF6] flex items-center justify-center border border-purple-100 active:scale-95 transition-all"
                     aria-label="Increase temperature"
                   >
@@ -123,7 +133,7 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
                   <button
                     type="button"
                     onClick={() => handleStep(-0.05)}
-                    disabled={bbtTempC - 0.05 < BBT_MIN}
+                    disabled={stepBase - 0.05 < BBT_MIN}
                     className="disabled:opacity-40 disabled:cursor-not-allowed w-8 h-8 rounded-lg bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#8B5CF6] flex items-center justify-center border border-purple-100 active:scale-95 transition-all"
                     aria-label="Decrease temperature"
                   >
@@ -135,7 +145,7 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
               {/* Quick Preset Buttons */}
               <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
                 {PRESETS.map((val) => {
-                  const isActive = Math.abs(bbtTempC - val) < 0.02;
+                  const isActive = bbtTempC !== null && Math.abs(bbtTempC - val) < 0.02;
                   return (
                     <button
                       key={val}
@@ -301,7 +311,7 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
                         type="button"
                         onClick={() => onToggleMedicationStatus(med.id, 'taken')}
                         aria-pressed={med.status === 'taken'}
-                        className={`px-3 py-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 text-[10px] font-semibold transition-all cursor-pointer ${
+                        className={`min-h-6 px-3 py-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 text-[10px] font-semibold transition-all cursor-pointer ${
                           med.status === 'taken'
                             ? 'bg-[#16A34A] text-white shadow-2xs font-bold'
                             : 'bg-white border border-gray-200 text-[#68708A] hover:bg-gray-50'
@@ -313,7 +323,7 @@ export const BbtAndMedicationSection: React.FC<BbtAndMedicationSectionProps> = (
                         type="button"
                         onClick={() => onToggleMedicationStatus(med.id, 'skipped')}
                         aria-pressed={med.status === 'skipped'}
-                        className={`px-3 py-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 text-[10px] font-semibold transition-all cursor-pointer ${
+                        className={`min-h-6 px-3 py-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 text-[10px] font-semibold transition-all cursor-pointer ${
                           med.status === 'skipped'
                             ? 'bg-rose-500 text-white shadow-2xs font-bold'
                             : 'bg-white border border-gray-200 text-[#68708A] hover:bg-gray-50'

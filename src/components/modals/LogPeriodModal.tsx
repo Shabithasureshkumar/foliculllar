@@ -44,7 +44,7 @@ export const LogPeriodModal: React.FC<LogPeriodModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/35 backdrop-blur-[2px] animate-enter"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/35 backdrop-blur-[2px] animate-fade"
       onClick={onClose}
     >
       <div

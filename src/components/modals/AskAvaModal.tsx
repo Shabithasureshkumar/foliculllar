@@ -57,7 +57,7 @@ export const AskAvaModal: React.FC<AskAvaModalProps> = ({ isOpen, context, onClo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/35 backdrop-blur-[2px] animate-enter"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/35 backdrop-blur-[2px] animate-fade"
       onClick={onClose}
     >
       <div
@@ -77,9 +77,14 @@ export const AskAvaModal: React.FC<AskAvaModalProps> = ({ isOpen, context, onClo
               <img src={aiRobot} alt="" className="w-9 h-9 object-contain" />
             </div>
             <div className="min-w-0">
-              <h2 id="ask-ava-title" className="text-[18px] sm:text-[20px] font-bold text-[#17152B] leading-tight">
-                Ask Ava
-              </h2>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 id="ask-ava-title" className="text-[18px] sm:text-[20px] font-bold text-[#17152B] leading-tight">
+                  Ask Ava
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#F5EEFF] text-[#8B5CF6] text-[11px] font-semibold whitespace-nowrap">
+                  {context.phaseLabel} · Day {context.cycleDay}
+                </span>
+              </div>
               <p id="ask-ava-desc" className="text-[11.5px] sm:text-[12px] text-[#68708A] leading-snug mt-0.5">
                 Your cycle assistant. Answers use your {context.phaseLabel.toLowerCase()} data for {context.dateLabel} (cycle day {context.cycleDay}).
               </p>

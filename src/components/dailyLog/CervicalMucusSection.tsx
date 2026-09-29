@@ -10,8 +10,9 @@ import mucusEggwhite from '../../assets/mucus_eggwhite.png';
 interface CervicalMucusSectionProps {
   /** Short phase name, e.g. "Follicular" */
   phaseBadge: string;
-  selectedMucus: CervicalMucusType;
-  onSelectMucus: (mucus: CervicalMucusType) => void;
+  selectedMucus: CervicalMucusType | null;
+  /** Receives null when the selected option is clicked again (clears it) */
+  onSelectMucus: (mucus: CervicalMucusType | null) => void;
 }
 
 export const CervicalMucusSection: React.FC<CervicalMucusSectionProps> = ({
@@ -69,7 +70,7 @@ export const CervicalMucusSection: React.FC<CervicalMucusSectionProps> = ({
     },
   ];
 
-  const selectedTag = mucusList.find((m) => m.type === selectedMucus)?.fertilityTag ?? '';
+  const selectedTag = mucusList.find((m) => m.type === selectedMucus)?.fertilityTag ?? 'Not logged';
 
   return (
     <div className="w-full bg-white rounded-[24px] p-4 sm:p-5 border border-[#F1DDE8]/70 shadow-sm text-left">
@@ -98,8 +99,8 @@ export const CervicalMucusSection: React.FC<CervicalMucusSectionProps> = ({
 
       {/* 5 Selectable Illustrated Cards */}
       <div
-        role="radiogroup"
-        aria-label="Cervical Mucus Type"
+        role="group"
+        aria-label="Cervical mucus type"
         className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3"
       >
         {mucusList.map((item) => {
@@ -108,10 +109,9 @@ export const CervicalMucusSection: React.FC<CervicalMucusSectionProps> = ({
             <button
               key={item.type}
               type="button"
-              role="radio"
-              aria-checked={isSelected}
+              aria-pressed={isSelected}
               data-testid={`mucus-option-${item.type}`}
-              onClick={() => onSelectMucus(item.type)}
+              onClick={() => onSelectMucus(isSelected ? null : item.type)}
               className={`relative p-3 rounded-[20px] border flex flex-col items-center justify-between text-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 min-h-[150px] ${
                 isSelected
                   ? 'bg-[#FFF0F6] border-[#F43F8F] shadow-2xs ring-2 ring-[#F43F8F]/20 scale-102'

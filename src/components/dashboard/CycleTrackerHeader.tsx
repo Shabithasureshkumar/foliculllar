@@ -3,13 +3,9 @@ import headerCalendar from '../../assets/header_calendar.png';
 import avatarPatient from '../../assets/avatar.png';
 import { PATIENT_PROFILE } from '../../data/mockData';
 
-interface CycleTrackerHeaderProps {
-  onProfileClick?: () => void;
-}
-
 const bmi = PATIENT_PROFILE.weightKg / (PATIENT_PROFILE.heightCm / 100) ** 2;
 
-export const CycleTrackerHeader: React.FC<CycleTrackerHeaderProps> = ({ onProfileClick }) => {
+export const CycleTrackerHeader: React.FC = () => {
   const p = PATIENT_PROFILE;
   return (
     <div className="w-full max-w-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 py-1.5 sm:py-2">
@@ -46,11 +42,9 @@ export const CycleTrackerHeader: React.FC<CycleTrackerHeaderProps> = ({ onProfil
       </div>
 
       {/* Right Patient Profile Card */}
-      <button
-        type="button"
-        onClick={onProfileClick}
-        className="relative bg-gradient-to-r from-[#EC3F8F] to-[#F77DB5] hover:from-[#E03080] hover:to-[#F06BA8] rounded-[20px] pl-4 pr-2 py-2.5 text-white shadow-2xs flex items-center justify-between gap-3 text-left transition-all overflow-hidden shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 focus-visible:ring-offset-2 w-full sm:w-[300px] lg:w-[330px] min-h-[90px]"
-        aria-label={`View ${p.name} patient details`}
+      <section
+        aria-label="Patient profile"
+        className="relative bg-gradient-to-r from-[#EC3F8F] to-[#F77DB5] rounded-[20px] pl-4 pr-2 py-2.5 text-white shadow-2xs flex items-center justify-between gap-3 text-left overflow-hidden shrink-0 w-full sm:w-[300px] lg:w-[330px] min-h-[90px]"
       >
         {/* Left Stats Text */}
         <div className="flex flex-col justify-center z-10 space-y-0.5 leading-tight min-w-0">
@@ -67,7 +61,7 @@ export const CycleTrackerHeader: React.FC<CycleTrackerHeaderProps> = ({ onProfil
             Cycle Length: {p.cycleLengthDays} days (avg)
           </p>
           <p className="text-[10.5px] text-white/90 font-medium">
-            BMI : {bmi.toFixed(1)}
+            BMI: {bmi.toFixed(1)}
           </p>
         </div>
 
@@ -82,7 +76,7 @@ export const CycleTrackerHeader: React.FC<CycleTrackerHeaderProps> = ({ onProfil
             className="relative z-10 w-[96px] max-w-none h-[92px] object-contain object-bottom select-none pointer-events-none"
           />
         </div>
-      </button>
+      </section>
     </div>
   );
 };

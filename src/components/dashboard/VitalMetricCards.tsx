@@ -8,7 +8,8 @@ import { CARD, CLICKABLE, clickableProps } from './metricCardStyles';
 import { CardHeader } from './MetricCardHeader';
 
 interface VitalMetricCardsProps {
-  bbtTempC: number;
+  /** Tracked values are null when nothing is logged for the day */
+  bbtTempC: number | null;
   /** Mean of recent earlier readings; null until there is history */
   bbtBaseline: number | null;
   /** Most recent earlier reading, for the trend badge */
@@ -16,10 +17,11 @@ interface VitalMetricCardsProps {
   bbtPhaseNote: string;
   /** Whether the viewed date is today (affects wording only) */
   isToday: boolean;
-  selectedMucus: CervicalMucusType;
-  lhTest: LhTestResult;
-  libido: LibidoLevel;
-  onSelectMucus: (mucus: CervicalMucusType) => void;
+  selectedMucus: CervicalMucusType | null;
+  lhTest: LhTestResult | null;
+  libido: LibidoLevel | null;
+  /** Receives null when the selected pill is clicked again (clears it) */
+  onSelectMucus: (mucus: CervicalMucusType | null) => void;
   onOpenDailyLog: () => void;
 }
 
@@ -52,6 +54,9 @@ const LIBIDO_INFO: Record<LibidoLevel, { title: string; subtitle: string }> = {
   high: { title: 'High', subtitle: 'Surging drive' },
 };
 
+// Shown instead of a value when the day has nothing logged for that metric
+const NOT_LOGGED = { title: 'Not logged', subtitle: 'Add it in the Daily Log' };
+
 export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
   bbtTempC,
   bbtBaseline,
@@ -64,16 +69,16 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
   onSelectMucus,
   onOpenDailyLog,
 }) => {
-  const delta = bbtBaseline !== null ? bbtTempC - bbtBaseline : null;
-  const trendDiff = bbtPrevious !== null ? bbtTempC - bbtPrevious : null;
+  const delta = bbtTempC !== null && bbtBaseline !== null ? bbtTempC - bbtBaseline : null;
+  const trendDiff = bbtTempC !== null && bbtPrevious !== null ? bbtTempC - bbtPrevious : null;
   const trend =
     trendDiff === null ? null : trendDiff > 0.04 ? 'Rising' : trendDiff < -0.04 ? 'Falling' : 'Stable';
-  const inNormalRange = bbtTempC >= 35.8 && bbtTempC <= 37.3;
+  const inNormalRange = bbtTempC !== null && bbtTempC >= 35.8 && bbtTempC <= 37.3;
   const shiftDetected = delta !== null && delta >= 0.3;
 
-  const mucus = MUCUS_INFO[selectedMucus];
-  const lh = LH_INFO[lhTest];
-  const lib = LIBIDO_INFO[libido];
+  const mucus = selectedMucus !== null ? MUCUS_INFO[selectedMucus] : null;
+  const lh = lhTest !== null ? LH_INFO[lhTest] : { ...NOT_LOGGED, testLine: 0 };
+  const lib = libido !== null ? LIBIDO_INFO[libido] : NOT_LOGGED;
 
   const TrendIcon = trend === 'Rising' ? TrendingUp : trend === 'Falling' ? TrendingDown : Minus;
 
@@ -89,7 +94,11 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
 
         <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-3">
           <span className="text-metric font-bold text-[#17152B]">
-            {delta !== null ? `${delta < 0 ? '−' : ''}${Math.abs(delta).toFixed(2)}°` : `${bbtTempC.toFixed(2)}°`}
+            {bbtTempC === null
+              ? NOT_LOGGED.title
+              : delta !== null
+                ? `${delta < 0 ? '−' : ''}${Math.abs(delta).toFixed(2)}°`
+                : `${bbtTempC.toFixed(2)}°`}
           </span>
           {trend && (
             <span
@@ -103,7 +112,9 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
         </div>
 
         <p className="text-caption text-[#68708A] mt-2">
-          {delta !== null ? (
+          {bbtTempC === null ? (
+            <>No temperature logged {isToday ? 'today' : 'for this day'}. Take it right after waking, before getting up.</>
+          ) : delta !== null ? (
             <>
               Your body temperature is{' '}
               <strong className="text-[#17152B] font-semibold">{Math.abs(delta).toFixed(2)}°C</strong>{' '}
@@ -118,15 +129,17 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
           )}
         </p>
 
-        <div className="mt-auto pt-3">
-          <span
-            className={`text-[11px] sm:text-[12px] font-semibold px-3 py-1 rounded-full inline-block ${
-              inNormalRange ? 'bg-[#DCFCE7] text-[#15803D]' : 'bg-amber-50 text-amber-700'
-            }`}
-          >
-            {inNormalRange ? 'Normal Range' : 'Check Reading'}
-          </span>
-        </div>
+        {bbtTempC !== null && (
+          <div className="mt-auto pt-3">
+            <span
+              className={`text-[11px] sm:text-[12px] font-semibold px-3 py-1 rounded-full inline-block ${
+                inNormalRange ? 'bg-[#DCFCE7] text-[#15803D]' : 'bg-amber-50 text-amber-700'
+              }`}
+            >
+              {inNormalRange ? 'Normal Range' : 'Check Reading'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 2. Cervical mucus (pills select directly; they write to the same daily log) */}
@@ -137,18 +150,20 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
             iconBg="bg-[#FFF0F6] text-[#F43F8F]"
             title="Cervical mucus"
           />
-          <span className="bg-[#F9A8D4]/60 text-[#BE185D] text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
-            {mucus.badge}
-          </span>
+          {mucus && (
+            <span className="bg-[#F9A8D4]/60 text-[#BE185D] text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
+              {mucus.badge}
+            </span>
+          )}
         </div>
 
         <div className="relative z-10 mt-3 max-w-[62%]">
-          <span className="text-metric font-bold text-[#17152B] block">{mucus.title}</span>
-          <p className="text-caption text-[#68708A] mt-1">{mucus.subtitle}</p>
+          <span className="text-metric font-bold text-[#17152B] block">{(mucus ?? NOT_LOGGED).title}</span>
+          <p className="text-caption text-[#68708A] mt-1">{mucus ? mucus.subtitle : 'Choose a type below'}</p>
         </div>
 
         <div
-          role="radiogroup"
+          role="group"
           aria-label="Cervical mucus type"
           className="relative z-10 flex flex-wrap items-center gap-1.5 mt-auto pt-3 max-w-[66%]"
         >
@@ -158,11 +173,10 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
               <button
                 key={opt.type}
                 type="button"
-                role="radio"
-                aria-checked={isSelected}
+                aria-pressed={isSelected}
                 aria-label={opt.full}
-                onClick={() => onSelectMucus(opt.type)}
-                className={`px-2 py-1 rounded-md text-[10.5px] font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
+                onClick={() => onSelectMucus(isSelected ? null : opt.type)}
+                className={`min-h-6 px-2 py-1 rounded-md text-[10.5px] font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
                   isSelected ? 'bg-[#F472B6] text-white shadow-2xs' : 'bg-[#F3F4F6] text-[#374151] hover:bg-gray-200'
                 }`}
               >

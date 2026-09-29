@@ -14,7 +14,7 @@ export interface PhaseIllustration {
 const CHEERING: PhaseIllustration = { src: womanCheering, alt: 'Woman celebrating with raised arms', width: 888, height: 688, maxWidth: 230 };
 const RESTING: PhaseIllustration = { src: womanResting, alt: 'Woman relaxing cross-legged in meditation', width: 82, height: 90, maxWidth: 124 };
 
-export interface PhaseContent {
+interface PhaseContent {
   /** Short name for badges, e.g. "Follicular" */
   badge: string;
   heroTitle: string;

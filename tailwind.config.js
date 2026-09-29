@@ -70,6 +70,10 @@ export default {
         '5xl': '48px',
       },
       keyframes: {
+        'fade': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
         'enter': {
           from: { opacity: '0', transform: 'translateY(4px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
@@ -77,6 +81,8 @@ export default {
       },
       animation: {
         'enter': 'enter 200ms ease-out both',
+        // Opacity-only: for fixed full-screen overlays, which must never shift past the viewport
+        'fade': 'fade 200ms ease-out both',
       },
     },
   },

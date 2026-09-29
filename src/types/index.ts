@@ -8,50 +8,6 @@ export interface CycleDay {
   phase: PhaseType;
   isSelected?: boolean;
   isLogged?: boolean;
-  indicatorType?: 'droplet' | 'circle' | 'dot';
-  indicatorColor?: string;
-}
-
-export interface BodyChangesState {
-  glowRating: number; // 1 to 5 stars
-  acne: 'Minimal' | 'Mild' | 'Moderate' | 'Severe';
-  oiliness: 'Low' | 'Normal' | 'High';
-  texture: 'Smooth' | 'Uneven' | 'Rough';
-  digestiveStatus: 'Normal' | 'Sluggish' | 'Active';
-  bloating: 'None' | 'Mild' | 'Moderate' | 'Severe';
-  constipation: 'None' | 'Mild' | 'Moderate';
-  appetite: 'Healthy' | 'Low' | 'High' | 'Cravings';
-}
-
-export interface ActivityLog {
-  id: string;
-  name: string;
-  type: 'walking' | 'cardio' | 'yoga' | 'strength' | 'cycling' | 'swimming' | 'pilates' | 'custom';
-  durationMin: number;
-  targetMin: number;
-  gradientFrom: string;
-  gradientTo: string;
-  caloriesBurned?: number;
-}
-
-export interface WellnessMetricsState {
-  sleepHours: number;
-  sleepQuality?: 'Restful' | 'Normal' | 'Restless';
-  mood: 'Great' | 'Good' | 'Neutral' | 'Low' | 'Sensitive';
-  waterCurrentL: number;
-  waterTargetL: number;
-  steps: number;
-  weightKg: number;
-  sexActivity: 'Not Logged' | 'Protected' | 'Unprotected' | 'High Drive';
-}
-
-export interface ConnectedDevice {
-  id: string;
-  name: string;
-  type: 'watch' | 'thermometer' | 'scale';
-  lastSyncedText: string;
-  isSynced: boolean;
-  batteryLevel?: number;
 }
 
 export type CervicalMucusType = 'dry' | 'sticky' | 'creamy' | 'watery' | 'egg_white';
@@ -70,7 +26,6 @@ export interface MedicationEntry {
   dosage: string;
   status: 'taken' | 'skipped' | 'pending';
   time?: string;
-  icon?: string;
   type?: string;
   frequency?: string;
   startDate?: string;
@@ -89,66 +44,29 @@ export interface PeriodLogData {
   dateStr?: string;
 }
 
+/**
+ * One calendar day's log. Tracked values are `null` until the user logs them,
+ * so an untouched day never shows (or saves) invented defaults.
+ */
 export interface FollicularDailyLogData {
   cycleDay: number;
   dateStr: string;
-  bbtTempC: number;
+  bbtTempC: number | null;
   bbtTime: string;
   bbtDevice: string;
   bbtManualNotes?: string;
-  mood: FollicularMood;
-  energyLevel: FollicularEnergy;
-  cervicalMucus: CervicalMucusType;
-  lhTest: LhTestResult;
-  libido: LibidoLevel;
+  mood: FollicularMood | null;
+  energyLevel: FollicularEnergy | null;
+  cervicalMucus: CervicalMucusType | null;
+  lhTest: LhTestResult | null;
+  libido: LibidoLevel | null;
   medications: MedicationEntry[];
   periodLog?: PeriodLogData;
-  aiInsight?: {
-    title: string;
-    text: string;
-    chips: string[];
-  };
 }
-
-export interface BbtDataPoint {
-  id: string;
-  day: string;
-  cycleDay: number;
-  dateStr: string;
-  tempC: number;
-  isToday?: boolean;
-}
-
-export interface FertilityTrackingState {
-  cervicalMucus: CervicalMucusType;
-  bbtTempC: number;
-  bbtTrend: BbtDataPoint[];
-  lhTest: LhTestResult;
-  libido: LibidoLevel;
-}
-
-export type QuickLogCategory =
-  | 'flow'
-  | 'symptoms'
-  | 'mood'
-  | 'weight'
-  | 'sleep'
-  | 'water'
-  | 'cervical_mucus'
-  | 'bbt'
-  | 'lh_test'
-  | 'libido'
-  | 'medication';
 
 export interface ToastMessage {
   id: string;
   title: string;
   description?: string;
   type?: 'success' | 'info';
-}
-
-export interface SavedNote {
-  id: string;
-  text: string;
-  timestamp: string;
 }

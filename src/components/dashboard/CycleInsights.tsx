@@ -3,21 +3,25 @@ import { Zap, Brain, Activity } from 'lucide-react';
 import type { FollicularEnergy, FollicularMood } from '../../types';
 
 interface CycleInsightsProps {
-  energyLevel: FollicularEnergy;
-  mood: FollicularMood;
+  /** null when not logged for the viewed day */
+  energyLevel: FollicularEnergy | null;
+  mood: FollicularMood | null;
   hormone: { title: string; desc: string };
 }
 
 export const CycleInsights: React.FC<CycleInsightsProps> = ({ energyLevel, mood, hormone }) => {
   // Dynamic calculation of energy segments (out of 13)
-  const energyFilledSegments = energyLevel === 'High' ? 10 : energyLevel === 'Moderate' ? 7 : 3;
+  const energyFilledSegments = energyLevel === 'High' ? 10 : energyLevel === 'Moderate' ? 7 : energyLevel === 'Low' ? 3 : 0;
 
+  // Phase-neutral wording: the hormone card carries the phase-specific explanation
   const energyText =
     energyLevel === 'High'
-      ? 'You may feel more energetic as estrogen levels rise.'
+      ? 'You logged plenty of energy. A good day for more active plans.'
       : energyLevel === 'Moderate'
-      ? 'Your energy is steady. Great balance for productive daily focus.'
-      : 'Rest and restorative sleep can help your body recharge today.';
+        ? 'Your energy is steady. Great balance for productive daily focus.'
+        : energyLevel === 'Low'
+          ? 'Rest and restorative sleep can help your body recharge.'
+          : 'Log your energy level in the Daily Log to see this insight.';
 
   // Mood description mapping
   const moodMap: Record<FollicularMood, { title: string; desc: string }> = {
@@ -43,7 +47,9 @@ export const CycleInsights: React.FC<CycleInsightsProps> = ({ energyLevel, mood,
     },
   };
 
-  const currentMoodInfo = moodMap[mood] || moodMap.Irritable;
+  const currentMoodInfo = mood !== null
+    ? moodMap[mood]
+    : { title: 'Not logged', desc: 'Log your mood in the Daily Log to see how it relates to your cycle.' };
 
   return (
     <section aria-labelledby="cycle-insights-title" className="w-full flex flex-col text-left bg-white border border-[#F1DDE8]/70 rounded-[22px] p-4 sm:p-5 shadow-2xs">
@@ -70,11 +76,11 @@ export const CycleInsights: React.FC<CycleInsightsProps> = ({ energyLevel, mood,
               Energy Level
             </span>
             <span className="text-card-title font-semibold text-[#17152B] block mb-2.5">
-              {energyLevel}
+              {energyLevel ?? 'Not logged'}
             </span>
 
             {/* 13-Segment Progress Bar */}
-            <div className="flex items-center gap-1 mb-3" role="img" aria-label={`Energy ${energyLevel}: ${energyFilledSegments} of 13`}>
+            <div className="flex items-center gap-1 mb-3" role="img" aria-label={`Energy ${energyLevel ?? 'not logged'}: ${energyFilledSegments} of 13`}>
               {[...Array(13)].map((_, i) => (
                 <div
                   key={i}
