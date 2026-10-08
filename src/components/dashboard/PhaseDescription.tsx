@@ -18,14 +18,14 @@ export const PhaseDescription: React.FC<PhaseDescriptionProps> = ({
   onViewTipsClick,
 }) => {
   return (
-    <div className="rounded-[22px] pl-4 sm:pl-5 pt-4 sm:pt-5 border border-[#F1DDE8]/70 shadow-2xs relative overflow-hidden flex items-stretch justify-between gap-3 w-full max-w-none min-w-0 h-full lg:min-h-[172px]">
+    <div className="rounded-[26px] pl-4 sm:pl-5 lg:pl-[clamp(1.25rem,2vw,2rem)] pt-4 sm:pt-5 border border-white/70 shadow-[0_8px_24px_rgba(236,72,153,0.14)] relative overflow-hidden flex items-stretch justify-between gap-3 w-full max-w-none min-w-0 h-full lg:min-h-[clamp(172px,15vw,230px)]">
       <SoftFloralBackground />
       {/* Left Content */}
       <div className="flex flex-col justify-center flex-1 min-w-0 z-10 pb-4 sm:pb-5">
-        <h3 className="text-card-title font-semibold text-[#17152B] mb-1.5">
+        <h3 className="text-[clamp(1rem,1.3vw,1.3rem)] leading-tight font-semibold text-[#17152B] mb-2">
           {title}
         </h3>
-        <p className="text-body text-[#68708A] font-normal mb-3.5">
+        <p className="text-body text-[#68708A] font-normal mb-4 max-w-[34rem]">
           {text}
         </p>
 
@@ -35,14 +35,14 @@ export const PhaseDescription: React.FC<PhaseDescriptionProps> = ({
             type="button"
             data-testid="log-period-button"
             onClick={onLogPeriodClick}
-            className="px-4 sm:px-5 py-2 rounded-full bg-[#F43F8F] hover:bg-[#E02E7E] active:scale-95 text-white text-[12px] sm:text-[13px] font-semibold shadow-2xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 focus-visible:ring-offset-1"
+            className="px-5 sm:px-6 py-2.5 rounded-full bg-[#F43F8F] hover:bg-[#E02E7E] active:scale-95 text-white text-[12.5px] sm:text-[14px] font-semibold shadow-2xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 focus-visible:ring-offset-1"
           >
             Log period
           </button>
           <button
             type="button"
             onClick={onViewTipsClick}
-            className="px-4 sm:px-5 py-2 rounded-full bg-[#FFF0F6] hover:bg-[#FFE4EE] active:scale-95 text-[#F43F8F] text-[12px] sm:text-[13px] font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 focus-visible:ring-offset-1"
+            className="px-5 sm:px-6 py-2.5 rounded-full bg-white/60 hover:bg-white/90 active:scale-95 text-[#F43F8F] text-[12.5px] sm:text-[14px] font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 focus-visible:ring-offset-1"
           >
             View Tips
           </button>
