@@ -1,5 +1,6 @@
 import React from 'react';
 import type { PhaseIllustration } from '../../data/phaseContent';
+import { SoftFloralBackground } from './SoftFloralBackground';
 
 interface PhaseDescriptionProps {
   title: string;
@@ -17,7 +18,8 @@ export const PhaseDescription: React.FC<PhaseDescriptionProps> = ({
   onViewTipsClick,
 }) => {
   return (
-    <div className="bg-white rounded-[22px] pl-4 sm:pl-5 pt-4 sm:pt-5 border border-[#F1DDE8]/70 shadow-2xs relative overflow-hidden flex items-stretch justify-between gap-3 w-full max-w-none min-w-0 h-full lg:min-h-[192px]">
+    <div className="rounded-[22px] pl-4 sm:pl-5 pt-4 sm:pt-5 border border-[#F1DDE8]/70 shadow-2xs relative overflow-hidden flex items-stretch justify-between gap-3 w-full max-w-none min-w-0 h-full lg:min-h-[172px]">
+      <SoftFloralBackground />
       {/* Left Content */}
       <div className="flex flex-col justify-center flex-1 min-w-0 z-10 pb-4 sm:pb-5">
         <h3 className="text-card-title font-semibold text-[#17152B] mb-1.5">
@@ -49,7 +51,7 @@ export const PhaseDescription: React.FC<PhaseDescriptionProps> = ({
 
       {/* Right phase illustration (sized fluidly, capped so small bitmaps never upscale badly) */}
       <div
-        className="hidden min-[420px]:flex w-[clamp(96px,16vw,230px)] shrink-0 pointer-events-none select-none items-end justify-center pr-2"
+        className="relative z-10 hidden min-[420px]:flex w-[clamp(96px,16vw,230px)] shrink-0 pointer-events-none select-none items-end justify-center pr-2"
         style={{ maxWidth: illustration.maxWidth, paddingBottom: illustration.maxWidth < 200 ? 12 : 0 }}
       >
         <img

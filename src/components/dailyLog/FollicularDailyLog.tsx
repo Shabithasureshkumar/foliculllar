@@ -4,6 +4,7 @@ import { AiWellnessInsightBanner } from './AiWellnessInsightBanner';
 import { BbtAndMedicationSection } from './BbtAndMedicationSection';
 import { MoodAndEnergySection } from './MoodAndEnergySection';
 import { CervicalMucusSection } from './CervicalMucusSection';
+import { IntercourseSection } from './IntercourseSection';
 import { LhAndLibidoSection } from './LhAndLibidoSection';
 import { formatLongDate } from '../../utils/calendarUtils';
 import { PHASE_CONTENT } from '../../data/phaseContent';
@@ -124,7 +125,15 @@ export const FollicularDailyLog: React.FC<FollicularDailyLogProps> = ({
         onSelectLibido={(libido) => onUpdateLog({ libido })}
       />
 
-      {/* 8. Bottom Save Action Button */}
+      {/* 8. Intercourse */}
+      <IntercourseSection
+        intercourse={logData.intercourse}
+        protectionMethod={logData.protectionMethod}
+        additionalDetails={logData.additionalDetails}
+        onUpdate={onUpdateLog}
+      />
+
+      {/* 9. Bottom Save Action Button */}
       <div className="flex items-center justify-end pt-1 pb-6">
         <button
           type="button"

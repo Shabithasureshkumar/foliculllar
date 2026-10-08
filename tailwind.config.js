@@ -16,6 +16,8 @@ export default {
         'section-title': ['clamp(1rem, 0.9rem + 0.45vw, 1.3rem)', { lineHeight: '1.25' }],
         'card-title': ['clamp(0.9rem, 1vw, 1.05rem)', { lineHeight: '1.3' }],
         'metric': ['clamp(1.5rem, 2vw, 2rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        // Primary value inside Overview metric cards (36.10°, Creamy, Peak, Low…)
+        'metric-value': ['clamp(1.125rem, 1rem + 0.35vw, 1.375rem)', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
         'body': ['clamp(0.75rem, 0.85vw, 0.9rem)', { lineHeight: '1.55' }],
         'caption': ['clamp(0.6875rem, 0.66rem + 0.1vw, 0.75rem)', { lineHeight: '1.4' }],
         'badge': ['0.6875rem', { lineHeight: '1.2' }],

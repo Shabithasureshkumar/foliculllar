@@ -13,6 +13,9 @@ export const PATIENT_PROFILE = {
   lastPeriodStart: new Date(2026, 5, 1),
 };
 
+// Clinician shown in the top navigation
+export const DOCTOR_PROFILE = { name: 'David Brock', role: 'General Physician' };
+
 const INITIAL_MEDICATIONS: MedicationEntry[] = [
   {
     id: 'med-ib',
@@ -47,4 +50,7 @@ export const INITIAL_FOLLICULAR_LOG: FollicularDailyLogData = {
   lhTest: 'low',
   libido: 'medium',
   medications: INITIAL_MEDICATIONS,
+  intercourse: null,
+  protectionMethod: null,
+  additionalDetails: '',
 };

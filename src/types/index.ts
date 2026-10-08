@@ -16,6 +16,10 @@ export type LhTestResult = 'negative' | 'low' | 'high' | 'peak';
 
 export type LibidoLevel = 'low' | 'medium' | 'high';
 
+export type IntercourseAnswer = 'yes' | 'no';
+
+export type ProtectionMethod = 'pill' | 'condom' | 'none' | 'other';
+
 export type FollicularMood = 'Happy' | 'Calm' | 'Neutral' | 'Irritable' | 'Sad';
 
 export type FollicularEnergy = 'Low' | 'Moderate' | 'High';
@@ -62,6 +66,10 @@ export interface FollicularDailyLogData {
   libido: LibidoLevel | null;
   medications: MedicationEntry[];
   periodLog?: PeriodLogData;
+  /** null until answered; protectionMethod/additionalDetails only apply to 'yes' (details only to 'other') */
+  intercourse: IntercourseAnswer | null;
+  protectionMethod: ProtectionMethod | null;
+  additionalDetails: string;
 }
 
 export interface ToastMessage {

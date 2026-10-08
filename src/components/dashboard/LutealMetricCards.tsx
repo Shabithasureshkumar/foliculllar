@@ -79,7 +79,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
   const energy = energyLevel !== null ? ENERGY_INFO[energyLevel] : null;
 
   return (
-    <div className="grid grid-cols-1 min-[560px]:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none items-stretch">
+    <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none items-stretch">
       {/* 1. Basal body temp */}
       <div {...clickableProps(onOpenDailyLog, 'Basal body temperature. Open Daily Log to update')} className={`${CARD} ${CLICKABLE}`}>
         <CardHeader
@@ -89,7 +89,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         />
 
         <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-3">
-          <span className="text-metric font-bold text-[#17152B]">
+          <span className="text-metric-value font-bold text-[#17152B]">
             {bbtTempC === null
               ? 'Not logged'
               : delta !== null
@@ -149,7 +149,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         </div>
 
         <div className="relative z-10 mt-3 max-w-[62%]">
-          <span className="text-metric font-bold text-[#17152B] block">{pmsTitle}</span>
+          <span className="text-metric-value font-bold text-[#17152B] block">{pmsTitle}</span>
           <p className="text-body text-[#68708A] mt-1">
             {symptoms.length ? symptoms.join(' · ') : loggedAnything ? 'No PMS signs logged' : 'Add mood & energy in the Daily Log'}
           </p>
@@ -178,7 +178,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         </div>
 
         <div className="relative z-10 mt-3 max-w-[58%]">
-          <span className="text-metric font-bold text-[#17152B] block">{mood ?? 'Not logged'}</span>
+          <span className="text-metric-value font-bold text-[#17152B] block">{mood ?? 'Not logged'}</span>
           <p className="text-body text-[#68708A] mt-1">{moodInfo ? moodInfo.subtitle : 'Add it in the Daily Log'}</p>
         </div>
 
@@ -207,7 +207,7 @@ export const LutealMetricCards: React.FC<LutealMetricCardsProps> = ({
         </div>
 
         <div className="relative z-10 mt-3 max-w-[62%]">
-          <span className="text-metric font-bold text-[#17152B] block">{energy?.title ?? 'Not logged'}</span>
+          <span className="text-metric-value font-bold text-[#17152B] block">{energy?.title ?? 'Not logged'}</span>
           <p className="text-body text-[#68708A] mt-1">{energy?.subtitle ?? 'Add your energy in the Daily Log'}</p>
         </div>
 

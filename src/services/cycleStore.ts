@@ -4,6 +4,8 @@ import type {
   FollicularDailyLogData,
   FollicularEnergy,
   FollicularMood,
+  IntercourseAnswer,
+  ProtectionMethod,
   LhTestResult,
   LibidoLevel,
   MedicationEntry,
@@ -22,6 +24,9 @@ const MUCUS_TYPES: readonly CervicalMucusType[] = ['dry', 'sticky', 'creamy', 'w
 const LH_RESULTS: readonly LhTestResult[] = ['negative', 'low', 'high', 'peak'];
 const LIBIDO_LEVELS: readonly LibidoLevel[] = ['low', 'medium', 'high'];
 const MED_STATUSES: readonly MedicationEntry['status'][] = ['taken', 'skipped', 'pending'];
+const INTERCOURSE_ANSWERS: readonly IntercourseAnswer[] = ['yes', 'no'];
+const PROTECTION_METHODS: readonly ProtectionMethod[] = ['pill', 'condom', 'none', 'other'];
+export const ADDITIONAL_DETAILS_MAX = 200;
 const FLOWS: readonly PeriodFlowType[] = ['Spotting', 'Light', 'Medium', 'Heavy'];
 const CRAMPS: readonly CrampsLevelType[] = ['None', 'Mild', 'Moderate', 'Severe'];
 
@@ -64,6 +69,9 @@ const createEmptyLog = (date: Date): FollicularDailyLogData => ({
   lhTest: null,
   libido: null,
   medications: [],
+  intercourse: null,
+  protectionMethod: null,
+  additionalDetails: '',
 });
 
 const normalizeMedication = (raw: unknown, index: number): MedicationEntry | null => {
@@ -82,6 +90,15 @@ const normalizeMedication = (raw: unknown, index: number): MedicationEntry | nul
     endDate: str(raw.endDate) || undefined,
     reminder: typeof raw.reminder === 'boolean' ? raw.reminder : undefined,
   };
+};
+
+// Keeps only fields that apply to the answer, so stale values can never reappear
+const normalizeIntercourse = (raw: UnknownRecord) => {
+  const intercourse = pick(raw.intercourse, INTERCOURSE_ANSWERS, null);
+  const protectionMethod = intercourse === 'yes' ? pick(raw.protectionMethod, PROTECTION_METHODS, null) : null;
+  const additionalDetails =
+    protectionMethod === 'other' ? str(raw.additionalDetails).slice(0, ADDITIONAL_DETAILS_MAX) : '';
+  return { intercourse, protectionMethod, additionalDetails };
 };
 
 const normalizePeriodLog = (raw: unknown): PeriodLogData | undefined => {
@@ -125,6 +142,7 @@ const normalizeLog = (raw: unknown, date: Date): FollicularDailyLogData => {
         return { ...m, id };
       }),
     periodLog: normalizePeriodLog(raw.periodLog),
+    ...normalizeIntercourse(raw),
   };
 };
 

@@ -83,7 +83,7 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
   const TrendIcon = trend === 'Rising' ? TrendingUp : trend === 'Falling' ? TrendingDown : Minus;
 
   return (
-    <div className="grid grid-cols-1 min-[560px]:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none items-stretch">
+    <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none items-stretch">
       {/* 1. Basal body temp */}
       <div {...clickableProps(onOpenDailyLog, 'Basal body temperature. Open Daily Log to update')} className={`${CARD} ${CLICKABLE}`}>
         <CardHeader
@@ -93,7 +93,7 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
         />
 
         <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-3">
-          <span className="text-metric font-bold text-[#17152B]">
+          <span className="text-metric-value font-bold text-[#17152B]">
             {bbtTempC === null
               ? NOT_LOGGED.title
               : delta !== null
@@ -144,28 +144,28 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
 
       {/* 2. Cervical mucus (pills select directly; they write to the same daily log) */}
       <div className={CARD}>
-        <div className="flex items-center justify-between gap-2 relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 relative z-10">
           <CardHeader
             icon={<Droplet className="w-3.5 h-3.5 stroke-[2.3]" />}
             iconBg="bg-[#FFF0F6] text-[#F43F8F]"
             title="Cervical mucus"
           />
           {mucus && (
-            <span className="bg-[#F9A8D4]/60 text-[#BE185D] text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
+            <span className="bg-[#F9A8D4]/60 text-[#BE185D] text-[9.5px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
               {mucus.badge}
             </span>
           )}
         </div>
 
         <div className="relative z-10 mt-3 max-w-[62%]">
-          <span className="text-metric font-bold text-[#17152B] block">{(mucus ?? NOT_LOGGED).title}</span>
+          <span className="text-metric-value font-bold text-[#17152B] block">{(mucus ?? NOT_LOGGED).title}</span>
           <p className="text-caption text-[#68708A] mt-1">{mucus ? mucus.subtitle : 'Choose a type below'}</p>
         </div>
 
         <div
           role="group"
           aria-label="Cervical mucus type"
-          className="relative z-10 flex flex-wrap items-center gap-1.5 mt-auto pt-3 max-w-[66%]"
+          className="relative z-10 flex flex-wrap items-center gap-1.5 mt-auto pt-3 max-w-[74%]"
         >
           {MUCUS_OPTIONS.map((opt) => {
             const isSelected = selectedMucus === opt.type;
@@ -206,7 +206,7 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
         </div>
 
         <div className="relative z-10 mt-3 max-w-[62%]">
-          <span className="text-metric font-bold text-[#17152B] block">{lh.title}</span>
+          <span className="text-metric-value font-bold text-[#17152B] block">{lh.title}</span>
           <p className="text-body text-[#68708A] mt-1">{lh.subtitle}</p>
         </div>
 
@@ -241,7 +241,7 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
         </div>
 
         <div className="relative z-10 mt-3 max-w-[58%]">
-          <span className="text-metric font-bold text-[#17152B] block">{lib.title}</span>
+          <span className="text-metric-value font-bold text-[#17152B] block">{lib.title}</span>
           <p className="text-body text-[#68708A] mt-1">{lib.subtitle}</p>
         </div>
 

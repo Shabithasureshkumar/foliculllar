@@ -8,6 +8,7 @@ import { CyclePhaseStatus } from './components/dashboard/CyclePhaseStatus';
 import { PhaseDescription } from './components/dashboard/PhaseDescription';
 import { VitalMetricCards } from './components/dashboard/VitalMetricCards';
 import { LutealMetricCards } from './components/dashboard/LutealMetricCards';
+import { IntercourseSummary } from './components/dashboard/IntercourseSummary';
 import { AiRecommendation } from './components/dashboard/AiRecommendation';
 import { MedicationHistory } from './components/dashboard/MedicationHistory';
 import { CycleInsights } from './components/dashboard/CycleInsights';
@@ -240,17 +241,18 @@ export const App: React.FC = () => {
 
   const phaseRow = (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 w-full max-w-none items-stretch">
-      <div className="lg:col-span-4 w-full min-w-0">
+      <div className="lg:col-span-5 w-full min-w-0">
         <CyclePhaseStatus
           cycleDay={cycleDay}
           cycleLength={PATIENT_PROFILE.cycleLengthDays}
           phaseName={phaseLabel}
+          phase={phase}
           statusText="Healthy"
           accent={phaseContent.accent}
           onSummaryClick={() => addToast('AI Summary', aiSummary, 'info')}
         />
       </div>
-      <div className="lg:col-span-8 w-full min-w-0">
+      <div className="lg:col-span-7 w-full min-w-0">
         <PhaseDescription
           title={phaseContent.heroTitle}
           text={phaseContent.heroText}
@@ -308,6 +310,14 @@ export const App: React.FC = () => {
                 onSelectMucus={handleSelectMucus}
                 onOpenDailyLog={() => handleTabChange('Daily Log')}
               />
+              )}
+
+              {log.intercourse === 'yes' && (
+                <IntercourseSummary
+                  eventCount={1}
+                  dateLabel={`${isTodaySelected ? 'Today, ' : ''}${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                  onOpen={() => handleTabChange('Daily Log')}
+                />
               )}
 
               <AiRecommendation

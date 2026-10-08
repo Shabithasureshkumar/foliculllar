@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { LayoutGrid, Search, Settings, Bell, Menu, X } from 'lucide-react';
-import avatarPatient from '../../assets/avatar.png';
-import { PATIENT_PROFILE } from '../../data/mockData';
+import { LayoutGrid, Search, Settings, Bell, Menu, X, UserRound } from 'lucide-react';
+import { DOCTOR_PROFILE } from '../../data/mockData';
 import { useModalA11y } from '../../hooks/useModalA11y';
 
 interface TopNavigationProps {
@@ -74,7 +73,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onDashboardClick, 
               key={item}
               {...navButtonProps(item)}
               className={`flex items-center gap-2 md:px-3 lg:px-4 py-1.5 min-h-8 rounded-full md:text-xs lg:text-[13px] font-semibold transition-all whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/40 ${
-                isActive ? 'bg-[#7C5CFC] text-white shadow-xs' : 'text-[#4B5563] cursor-default'
+                isActive ? 'bg-gradient-to-r from-[#6D4DF2] to-[#9B7BFF] text-white shadow-xs' : 'text-[#17152B] cursor-default'
               }`}
             >
               {isActive && <LayoutGrid className="w-3.5 h-3.5" aria-hidden="true" />}
@@ -98,18 +97,17 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onDashboardClick, 
           <Bell className="w-4 h-4" aria-hidden="true" />
         </button>
 
-        {/* Patient profile: photo at every size, name + patient ID from lg up */}
+        {/* Signed-in clinician: icon avatar at every size, name + role from lg up */}
         <div className="flex items-center gap-2.5 pl-2 border-l border-gray-100 shrink-0">
-          <img
-            src={avatarPatient}
-            alt={PATIENT_PROFILE.name}
-            width={600}
-            height={540}
-            className="w-9 h-9 rounded-full object-cover object-top bg-[#FFE4EE] border border-pink-200 shrink-0"
-          />
+          <span
+            aria-hidden="true"
+            className="w-9 h-9 rounded-full bg-[#FFE4EE] border border-pink-200 text-[#EC4899] flex items-center justify-center shrink-0"
+          >
+            <UserRound className="w-5 h-5" />
+          </span>
           <div className="hidden lg:flex flex-col text-left">
-            <span className="text-[12px] font-bold text-[#17152B] leading-tight whitespace-nowrap">{PATIENT_PROFILE.name}</span>
-            <span className="text-[10.5px] text-[#68708A] font-medium leading-tight whitespace-nowrap">{PATIENT_PROFILE.id}</span>
+            <span className="text-[12px] font-bold text-[#17152B] leading-tight whitespace-nowrap">{DOCTOR_PROFILE.name}</span>
+            <span className="text-[10.5px] text-[#68708A] font-medium leading-tight whitespace-nowrap">{DOCTOR_PROFILE.role}</span>
           </div>
         </div>
       </div>
