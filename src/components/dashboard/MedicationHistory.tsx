@@ -67,7 +67,7 @@ export const MedicationHistory: React.FC<MedicationHistoryProps> = ({ medication
           </button>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 min-[560px]:grid-cols-2 xl:grid-cols-4 gap-3 w-full max-w-none">
+        <ul className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-none">
           {visible.map((med) => {
             const status = STATUS_STYLE[med.status];
             return (

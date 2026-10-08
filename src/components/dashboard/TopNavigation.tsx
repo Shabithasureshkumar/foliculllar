@@ -64,7 +64,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ onDashboardClick, 
       {/* md+: Pill Navigation */}
       <nav
         aria-label="Main navigation"
-        className="hidden md:flex bg-[#FAF5FF] border border-[#F3E8FF] rounded-full p-1 items-center gap-1 min-w-0 max-w-full"
+        className="hidden md:flex bg-white border border-[#F3E8FF] rounded-full p-1 items-center gap-1 min-w-0 max-w-full"
       >
         {NAV_ITEMS.map((item) => {
           const isActive = item === 'Dashboard';

@@ -11,7 +11,7 @@ export default {
       },
       // Fluid type scale (Inter). Each step scales between a mobile floor and the reference size.
       fontSize: {
-        'display': ['clamp(1.75rem, 2.2vw, 2.5rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        'display': ['clamp(1.75rem, 3.4vw, 2.5rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
         'page-title': ['clamp(1.25rem, 1rem + 0.8vw, 1.625rem)', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
         'section-title': ['clamp(1rem, 0.9rem + 0.45vw, 1.3rem)', { lineHeight: '1.25' }],
         'card-title': ['clamp(0.9rem, 1vw, 1.05rem)', { lineHeight: '1.3' }],

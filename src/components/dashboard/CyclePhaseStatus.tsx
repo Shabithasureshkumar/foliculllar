@@ -1,6 +1,6 @@
 import React from 'react';
 import type { PhaseType } from '../../types';
-import { SoftFloralBackground } from './SoftFloralBackground';
+import statusBackground from '../../assets/phase_status_bg.webp';
 
 interface CyclePhaseStatusProps {
   cycleDay: number;
@@ -44,10 +44,15 @@ export const CyclePhaseStatus: React.FC<CyclePhaseStatusProps> = ({
 
   return (
     <div
-      className="relative overflow-hidden rounded-[26px] p-4 sm:p-5 lg:px-[clamp(1.25rem,2vw,2rem)] border border-white/70 shadow-[0_8px_24px_rgba(236,72,153,0.14)] flex items-center max-[359px]:flex-col max-[359px]:items-start gap-[clamp(1rem,1.8vw,1.75rem)] w-full max-w-none min-w-0 h-full lg:min-h-[clamp(172px,15vw,230px)]"
+      className="relative overflow-hidden rounded-[26px] p-4 sm:p-5 lg:px-[clamp(1.25rem,2vw,2rem)] border border-white/70 shadow-[0_8px_24px_rgba(236,72,153,0.14)] flex items-center max-[359px]:flex-col max-[359px]:items-start gap-[clamp(1rem,1.8vw,1.75rem)] w-full max-w-none min-w-0 h-full lg:min-h-[clamp(160px,14.7vw,230px)]"
       style={{ '--ring': 'clamp(92px, 11vw, 168px)' } as React.CSSProperties}
     >
-      <SoftFloralBackground />
+      {/* Uploaded artwork, cropped by `cover`; the right side (water drop) stays visible on narrow cards */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none select-none bg-cover bg-no-repeat bg-[position:88%_50%] lg:bg-[position:50%_50%]"
+        style={{ backgroundImage: `url(${statusBackground})` }}
+      />
 
       {/* Cycle ring (tap for the AI summary) */}
       <button
@@ -70,7 +75,8 @@ export const CyclePhaseStatus: React.FC<CyclePhaseStatusProps> = ({
             cy={SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke={isFollicular ? '#E7D3F7' : accent.track}
+            stroke={isFollicular ? 'url(#ring-gradient)' : accent.track}
+            strokeOpacity={isFollicular ? 0.28 : 1}
             strokeWidth={STROKE}
           />
           <circle
@@ -103,7 +109,7 @@ export const CyclePhaseStatus: React.FC<CyclePhaseStatusProps> = ({
         <span className="text-[10px] sm:text-[11px] lg:text-[clamp(0.7rem,0.9vw,0.85rem)] font-medium uppercase tracking-[0.16em] text-[#6B6A85] leading-tight">
           Status
         </span>
-        <h3 className="text-[clamp(1.05rem,1.7vw,1.6rem)] font-bold text-[#17152B] leading-tight mt-1 truncate">{phaseName}</h3>
+        <h3 className="text-[clamp(1rem,1.5vw,1.5rem)] font-bold text-[#17152B] leading-tight mt-1 truncate">{phaseName}</h3>
         <span
           className="text-[clamp(0.95rem,1.4vw,1.35rem)] font-semibold leading-tight mt-0.5"
           style={{ color: isFollicular ? PINK : accent.text }}

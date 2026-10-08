@@ -240,7 +240,7 @@ export const App: React.FC = () => {
   const aiSummary = `CD ${cycleDay} · ${phaseLabel}: ${loggedSummary.length ? `${loggedSummary.join(', ')}.` : 'nothing logged for this day yet.'}`;
 
   const phaseRow = (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 w-full max-w-none items-stretch">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-5 w-full max-w-none items-stretch">
       <div className="lg:col-span-5 w-full min-w-0">
         <CyclePhaseStatus
           cycleDay={cycleDay}

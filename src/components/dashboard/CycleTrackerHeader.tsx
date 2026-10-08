@@ -11,7 +11,7 @@ export const CycleTrackerHeader: React.FC = () => {
     <div className="w-full max-w-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 py-1.5 sm:py-2">
       {/* Left Title Section */}
       <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-        <div className="w-13 h-13 sm:w-16 sm:h-16 lg:w-20 lg:h-20 shrink-0 flex items-center justify-center">
+        <div className="w-13 h-13 sm:w-16 sm:h-16 lg:w-[88px] lg:h-[88px] shrink-0 flex items-center justify-center">
           <img
             src={headerCalendar}
             alt=""
@@ -24,7 +24,7 @@ export const CycleTrackerHeader: React.FC = () => {
         <div className="flex flex-col min-w-0">
           {/* PERIOD top label with line */}
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[#F43F8F] font-bold text-[11px] sm:text-[12px] uppercase tracking-[0.18em]">
+            <span className="text-[#F43F8F] font-bold text-[11px] sm:text-[12px] lg:text-[13px] uppercase tracking-[0.18em]">
               PERIOD
             </span>
             <div className="w-16 sm:w-24 h-[1.5px] bg-[#F43F8F]/70 rounded-full" />
@@ -35,7 +35,7 @@ export const CycleTrackerHeader: React.FC = () => {
             <span className="text-[#F43F8F]">Tracker</span>
           </h1>
 
-          <p className="text-body text-[#68708A] font-normal mt-1">
+          <p className="text-[clamp(0.8rem,1.25vw,0.95rem)] leading-snug text-[#68708A] font-normal mt-1">
             Understand your body, one day at a time.
           </p>
         </div>
@@ -44,11 +44,11 @@ export const CycleTrackerHeader: React.FC = () => {
       {/* Right Patient Profile Card */}
       <section
         aria-label="Patient profile"
-        className="relative bg-gradient-to-r from-[#EC3F8F] to-[#F77DB5] rounded-[20px] pl-4 pr-2 py-2.5 text-white shadow-2xs flex items-center justify-between gap-3 text-left overflow-hidden shrink-0 w-full sm:w-[300px] lg:w-[330px] min-h-[90px]"
+        className="relative bg-gradient-to-r from-[#EC3F8F] to-[#F77DB5] rounded-[20px] pl-4 pr-2 py-2.5 text-white shadow-2xs flex items-center justify-between gap-3 text-left overflow-hidden shrink-0 w-full sm:w-[300px] lg:w-[296px] min-h-[100px] lg:min-h-[104px]"
       >
         {/* Left Stats Text */}
         <div className="flex flex-col justify-center z-10 space-y-0.5 leading-tight min-w-0">
-          <h2 className="text-[15px] sm:text-[16px] font-bold text-white tracking-tight truncate">
+          <h2 className="text-[15px] sm:text-[16px] lg:text-[17px] font-bold text-white tracking-tight truncate">
             {p.name}
           </h2>
           <p className="text-[10.5px] text-white/95 font-medium">

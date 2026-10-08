@@ -83,7 +83,7 @@ export const VitalMetricCards: React.FC<VitalMetricCardsProps> = ({
   const TrendIcon = trend === 'Rising' ? TrendingUp : trend === 'Falling' ? TrendingDown : Minus;
 
   return (
-    <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-none items-stretch">
+    <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full max-w-none items-stretch">
       {/* 1. Basal body temp */}
       <div {...clickableProps(onOpenDailyLog, 'Basal body temperature. Open Daily Log to update')} className={`${CARD} ${CLICKABLE}`}>
         <CardHeader

@@ -11,7 +11,7 @@ export interface PhaseIllustration {
   maxWidth: number;
 }
 
-const CHEERING: PhaseIllustration = { src: womanCheering, alt: 'Woman celebrating with raised arms', width: 888, height: 688, maxWidth: 230 };
+const CHEERING: PhaseIllustration = { src: womanCheering, alt: 'Woman celebrating with raised arms', width: 888, height: 688, maxWidth: 260 };
 const RESTING: PhaseIllustration = { src: womanResting, alt: 'Woman relaxing cross-legged in meditation', width: 82, height: 90, maxWidth: 124 };
 
 interface PhaseContent {
