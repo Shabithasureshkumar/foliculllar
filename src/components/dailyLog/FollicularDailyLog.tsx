@@ -5,6 +5,7 @@ import { BbtAndMedicationSection } from './BbtAndMedicationSection';
 import { MoodAndEnergySection } from './MoodAndEnergySection';
 import { CervicalMucusSection } from './CervicalMucusSection';
 import { IntercourseSection } from './IntercourseSection';
+import { SymptomSection } from './SymptomSection';
 import { LhAndLibidoSection } from './LhAndLibidoSection';
 import { formatLongDate } from '../../utils/calendarUtils';
 import { PHASE_CONTENT } from '../../data/phaseContent';
@@ -27,6 +28,8 @@ interface FollicularDailyLogProps {
   onUpdateLog: (updated: Partial<FollicularDailyLogData>) => void;
   onSaveLog: () => void;
   onAddMedication: () => void;
+  /** Validation message from a failed save, shown inside Symptom Tracking */
+  symptomError: string | null;
 }
 
 export const FollicularDailyLog: React.FC<FollicularDailyLogProps> = ({
@@ -46,6 +49,7 @@ export const FollicularDailyLog: React.FC<FollicularDailyLogProps> = ({
   onUpdateLog,
   onSaveLog,
   onAddMedication,
+  symptomError,
 }) => {
   // Clicking the active status again clears it back to "not marked"
   const handleToggleMedStatus = (medId: string, status: 'taken' | 'skipped') => {
@@ -125,7 +129,20 @@ export const FollicularDailyLog: React.FC<FollicularDailyLogProps> = ({
         onSelectLibido={(libido) => onUpdateLog({ libido })}
       />
 
-      {/* 8. Intercourse */}
+      {/* 8. Symptom Tracking (options depend on the phase of the selected date) */}
+      <SymptomSection
+        key={`symptoms-${selectedDate.toDateString()}`}
+        phase={phase}
+        phaseBadge={content.badge}
+        symptoms={logData.symptoms}
+        noSymptoms={logData.noSymptoms}
+        otherSymptomText={logData.otherSymptomText}
+        severity={logData.symptomSeverity}
+        error={symptomError}
+        onUpdate={onUpdateLog}
+      />
+
+      {/* 9. Intercourse */}
       <IntercourseSection
         intercourse={logData.intercourse}
         protectionMethod={logData.protectionMethod}
@@ -133,7 +150,7 @@ export const FollicularDailyLog: React.FC<FollicularDailyLogProps> = ({
         onUpdate={onUpdateLog}
       />
 
-      {/* 9. Bottom Save Action Button */}
+      {/* 10. Bottom Save Action Button */}
       <div className="flex items-center justify-end pt-1 pb-6">
         <button
           type="button"

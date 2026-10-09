@@ -70,6 +70,14 @@ export interface FollicularDailyLogData {
   intercourse: IntercourseAnswer | null;
   protectionMethod: ProtectionMethod | null;
   additionalDetails: string;
+  /** Selected symptom ids (see data/symptoms.ts); empty until the user picks some */
+  symptoms: string[];
+  /** True only when the user explicitly chose "No symptoms today"; never combined with `symptoms` */
+  noSymptoms: boolean;
+  /** Free-text description, only kept while the Other symptom is selected */
+  otherSymptomText: string;
+  /** Optional 0 (none) – 10 (worst), only kept while symptoms are selected */
+  symptomSeverity: number | null;
 }
 
 export interface ToastMessage {

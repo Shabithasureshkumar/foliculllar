@@ -8,7 +8,7 @@ import { CyclePhaseStatus } from './components/dashboard/CyclePhaseStatus';
 import { PhaseDescription } from './components/dashboard/PhaseDescription';
 import { VitalMetricCards } from './components/dashboard/VitalMetricCards';
 import { LutealMetricCards } from './components/dashboard/LutealMetricCards';
-import { IntercourseSummary } from './components/dashboard/IntercourseSummary';
+import { DailyLogSummaryCards } from './components/dashboard/DailyLogSummaryCards';
 import { AiRecommendation } from './components/dashboard/AiRecommendation';
 import { MedicationHistory } from './components/dashboard/MedicationHistory';
 import { CycleInsights } from './components/dashboard/CycleInsights';
@@ -20,6 +20,7 @@ import { Toast } from './components/Toast';
 
 import { PATIENT_PROFILE } from './data/mockData';
 import { PHASE_CONTENT } from './data/phaseContent';
+import { OTHER_SYMPTOM_ID } from './data/symptoms';
 import {
   addDays,
   addMonthsClamped,
@@ -97,6 +98,7 @@ export const App: React.FC = () => {
   // Snapshot of every saved day; history, strip dots and BBT baseline are derived from it
   const [savedLogs, setSavedLogs] = useState(() => cycleStore.getAllLogs());
 
+  const [symptomError, setSymptomError] = useState<string | null>(null);
   const [isLogPeriodOpen, setIsLogPeriodOpen] = useState(false);
   const [isAddMedicationOpen, setIsAddMedicationOpen] = useState(false);
   const [isAskAvaOpen, setIsAskAvaOpen] = useState(false);
@@ -173,6 +175,7 @@ export const App: React.FC = () => {
 
   // ---- Date navigation ----
   const selectDate = useCallback((date: Date) => {
+    setSymptomError(null);
     setSelectedDate(date);
     setLog(cycleStore.getFollicularLog(toDateKey(date)));
   }, [setLog]);
@@ -192,10 +195,22 @@ export const App: React.FC = () => {
   };
 
   const handleUpdateLog = (updated: Partial<FollicularDailyLogData>) => {
+    if (symptomError) setSymptomError(null);
     commitLog({ ...latestLog.current, ...updated });
   };
 
   const handleSaveLog = () => {
+    const current = latestLog.current;
+    if (current.symptoms.includes(OTHER_SYMPTOM_ID) && !current.otherSymptomText.trim()) {
+      setSymptomError('Describe your symptom, or deselect Other.');
+      addToast('Check your symptoms', 'Add a description for “Other” or deselect it.', 'info');
+      document.getElementById('other-symptom')?.focus();
+      return;
+    }
+    // Store the trimmed description so whitespace never ends up in the saved record
+    if (current.otherSymptomText !== current.otherSymptomText.trim()) {
+      latestLog.current = { ...current, otherSymptomText: current.otherSymptomText.trim() };
+    }
     if (!commitLog(latestLog.current)) return;
     confetti({ particleCount: 55, spread: 70, origin: { y: 0.75 } });
     addToast('Daily Log Saved', `Your ${formatLongDate(selectedDate)} log is saved and shown on Overview.`, 'success');
@@ -312,13 +327,12 @@ export const App: React.FC = () => {
               />
               )}
 
-              {log.intercourse === 'yes' && (
-                <IntercourseSummary
-                  eventCount={1}
-                  dateLabel={`${isTodaySelected ? 'Today, ' : ''}${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-                  onOpen={() => handleTabChange('Daily Log')}
-                />
-              )}
+              <DailyLogSummaryCards
+                log={log}
+                dateLabel={selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                isToday={isTodaySelected}
+                onOpenDailyLog={() => handleTabChange('Daily Log')}
+              />
 
               <AiRecommendation
                 text={phaseContent.recommendation.text}
@@ -355,6 +369,7 @@ export const App: React.FC = () => {
               onUpdateLog={handleUpdateLog}
               onSaveLog={handleSaveLog}
               onAddMedication={() => setIsAddMedicationOpen(true)}
+              symptomError={symptomError}
             />
           )}
 

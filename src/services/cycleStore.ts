@@ -14,6 +14,7 @@ import type {
   PhaseType,
 } from '../types';
 import { INITIAL_FOLLICULAR_LOG } from '../data/mockData';
+import { KNOWN_SYMPTOM_IDS, OTHER_SYMPTOM_ID, OTHER_SYMPTOM_MAX } from '../data/symptoms';
 import { addDays, calculateCycleInfo, formatLongDate, parseDateKey, toDateKey } from '../utils/calendarUtils';
 
 const STORAGE_KEY_PREFIX = 'cycle_tracker_follicular_log_';
@@ -72,6 +73,10 @@ const createEmptyLog = (date: Date): FollicularDailyLogData => ({
   intercourse: null,
   protectionMethod: null,
   additionalDetails: '',
+  symptoms: [],
+  noSymptoms: false,
+  otherSymptomText: '',
+  symptomSeverity: null,
 });
 
 const normalizeMedication = (raw: unknown, index: number): MedicationEntry | null => {
@@ -99,6 +104,18 @@ const normalizeIntercourse = (raw: UnknownRecord) => {
   const additionalDetails =
     protectionMethod === 'other' ? str(raw.additionalDetails).slice(0, ADDITIONAL_DETAILS_MAX) : '';
   return { intercourse, protectionMethod, additionalDetails };
+};
+
+// "No symptoms" and a symptom list are mutually exclusive; the custom text and severity only apply to a real selection
+const normalizeSymptoms = (raw: UnknownRecord) => {
+  const ids = Array.isArray(raw.symptoms)
+    ? [...new Set(raw.symptoms.filter((v): v is string => typeof v === 'string' && KNOWN_SYMPTOM_IDS.has(v)))]
+    : [];
+  const noSymptoms = ids.length === 0 && raw.noSymptoms === true;
+  const otherSymptomText = ids.includes(OTHER_SYMPTOM_ID) ? str(raw.otherSymptomText).slice(0, OTHER_SYMPTOM_MAX) : '';
+  const sev = typeof raw.symptomSeverity === 'number' ? raw.symptomSeverity : Number.NaN;
+  const symptomSeverity = ids.length > 0 && Number.isInteger(sev) && sev >= 0 && sev <= 10 ? sev : null;
+  return { symptoms: ids, noSymptoms, otherSymptomText, symptomSeverity };
 };
 
 const normalizePeriodLog = (raw: unknown): PeriodLogData | undefined => {
@@ -143,6 +160,7 @@ const normalizeLog = (raw: unknown, date: Date): FollicularDailyLogData => {
       }),
     periodLog: normalizePeriodLog(raw.periodLog),
     ...normalizeIntercourse(raw),
+    ...normalizeSymptoms(raw),
   };
 };
 

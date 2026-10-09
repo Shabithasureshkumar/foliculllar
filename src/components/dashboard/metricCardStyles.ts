@@ -1,8 +1,10 @@
 import type React from 'react';
 
 // Shared card styling/behaviour for the Overview metric cards (all phases)
-export const CARD =
-  'w-full min-w-0 bg-white rounded-[22px] p-4 sm:p-5 border border-[#F1DDE8]/70 shadow-2xs relative flex flex-col overflow-hidden text-left min-h-[168px]';
+export const CARD_BASE =
+  'w-full min-w-0 bg-white rounded-[22px] p-4 sm:p-5 border border-[#F1DDE8]/70 shadow-2xs relative flex flex-col text-left';
+
+export const CARD = `${CARD_BASE} overflow-hidden min-h-[168px]`;
 
 // Whole-card shortcut to the Daily Log, reachable by keyboard (Enter/Space)
 export const clickableProps = (onActivate: () => void, label: string) => ({

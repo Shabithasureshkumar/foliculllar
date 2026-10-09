@@ -53,4 +53,8 @@ export const INITIAL_FOLLICULAR_LOG: FollicularDailyLogData = {
   intercourse: null,
   protectionMethod: null,
   additionalDetails: '',
+  symptoms: [],
+  noSymptoms: false,
+  otherSymptomText: '',
+  symptomSeverity: null,
 };
