@@ -19,10 +19,7 @@ interface CycleDaySelectorStripProps {
 }
 
 const LEGEND = [
-  { label: 'Menstruation', dot: 'bg-[#F87171]' },
-  { label: 'Fertile Window', dot: 'bg-[#60A5FA]' },
-  { label: 'Ovulation', dot: 'bg-[#4ADE80]' },
-  { label: 'Luteal Phase', dot: 'bg-[#C084FC]' },
+  { label: 'Follicular Phase', dot: 'border-2 border-[#E5E7EB]' },
   { label: 'Logged', dot: 'bg-[#D1D5DB]' },
 ];
 
@@ -115,7 +112,7 @@ export const CycleDaySelectorStrip: React.FC<CycleDaySelectorStripProps> = ({
       <div className="flex items-center gap-1 sm:gap-2 w-full">
         <ArrowButton onClick={onPrevDay} label="Previous day" dir="left" />
 
-        <div className="grid grid-cols-5 sm:grid-cols-7 gap-0.5 sm:gap-2 flex-1 min-w-0">
+        <div className="grid gap-0.5 sm:gap-2 flex-1 min-w-0" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, index) => {
             const isSelected = !!day.isSelected;
             const date = parseDateKey(day.id);

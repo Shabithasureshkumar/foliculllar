@@ -25,8 +25,10 @@ import {
   addDays,
   addMonthsClamped,
   calculateCycleInfo,
+  clampToFollicular,
   formatLongDate,
   generateDaysAround,
+  getDefaultFollicularDate,
   getToday,
   toDateKey,
 } from './utils/calendarUtils';
@@ -78,13 +80,14 @@ const STRIP_LENGTH = 7;
 
 // Seed today's record once, before first render, so Overview and Daily Log read the same data
 const initialToday = getToday();
-cycleStore.ensureSeeded(toDateKey(initialToday));
+const initialSelected = getDefaultFollicularDate(initialToday);
+cycleStore.ensureSeeded(toDateKey(initialSelected));
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TrackerTabType>(getInitialTabFromLocation);
 
   // Single source of truth for the date being viewed; everything else is derived from it
-  const [selectedDate, setSelectedDate] = useState<Date>(initialToday);
+  const [selectedDate, setSelectedDate] = useState<Date>(initialSelected);
   const [todayKey, setTodayKey] = useState(() => toDateKey(initialToday));
   const dateKey = toDateKey(selectedDate);
 
@@ -166,7 +169,10 @@ export const App: React.FC = () => {
   const phaseContent = PHASE_CONTENT[phase];
 
   const savedKeys = useMemo(() => new Set(Object.keys(savedLogs)), [savedLogs]);
-  const days = useMemo(() => generateDaysAround(selectedDate, STRIP_LENGTH, savedKeys), [selectedDate, savedKeys]);
+  const days = useMemo(
+    () => generateDaysAround(selectedDate, STRIP_LENGTH, savedKeys).filter((d) => d.phase === 'follicular'),
+    [selectedDate, savedKeys]
+  );
   const medicationHistory = useMemo(() => getMedicationHistory(savedLogs), [savedLogs]);
   const bbtContext = useMemo(() => getBbtContext(savedLogs, selectedDate), [savedLogs, selectedDate]);
 
@@ -175,7 +181,8 @@ export const App: React.FC = () => {
   const dateLabel = isTodaySelected ? `Today · ${formatLongDate(selectedDate)}` : formatLongDate(selectedDate);
 
   // ---- Date navigation ----
-  const selectDate = useCallback((date: Date) => {
+  const selectDate = useCallback((requested: Date) => {
+    const date = clampToFollicular(requested);
     setSymptomError(null);
     setSelectedDate(date);
     setLog(cycleStore.getFollicularLog(toDateKey(date)));
@@ -371,7 +378,7 @@ export const App: React.FC = () => {
               onNextDay={() => selectDate(addDays(selectedDate, 1))}
               onPrevMonth={() => selectDate(addMonthsClamped(selectedDate, -1))}
               onNextMonth={() => selectDate(addMonthsClamped(selectedDate, 1))}
-              onTodayClick={() => selectDate(getToday())}
+              onTodayClick={() => selectDate(getDefaultFollicularDate(getToday()))}
               onUpdateLog={handleUpdateLog}
               onSaveLog={handleSaveLog}
               onAddMedication={() => setIsAddMedicationOpen(true)}

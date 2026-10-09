@@ -122,3 +122,21 @@ export const generateDaysAround = (
     };
   });
 };
+
+// ---- Follicular-only scope: the app currently exposes Follicular days only ----
+const FOLLICULAR_RANGE = PHASE_RANGES.find((r) => r.phase === 'follicular')!;
+const DEFAULT_FOLLICULAR_CYCLE_DAY = 10;
+
+/** Snaps any date to the nearest Follicular day of its own cycle (Follicular dates are returned unchanged). */
+export const clampToFollicular = (date: Date): Date => {
+  const { cycleDay } = calculateCycleInfo(date);
+  if (cycleDay < FOLLICULAR_RANGE.start) return addDays(date, FOLLICULAR_RANGE.start - cycleDay);
+  if (cycleDay > FOLLICULAR_RANGE.end) return addDays(date, FOLLICULAR_RANGE.end - cycleDay);
+  return date;
+};
+
+/** Date the app opens on: today when it is Follicular, otherwise CD10 of the current cycle. */
+export const getDefaultFollicularDate = (today: Date): Date => {
+  const { cycleDay, phase } = calculateCycleInfo(today);
+  return phase === 'follicular' ? today : addDays(today, DEFAULT_FOLLICULAR_CYCLE_DAY - cycleDay);
+};
