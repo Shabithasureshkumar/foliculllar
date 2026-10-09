@@ -170,6 +170,7 @@ export const App: React.FC = () => {
   const medicationHistory = useMemo(() => getMedicationHistory(savedLogs), [savedLogs]);
   const bbtContext = useMemo(() => getBbtContext(savedLogs, selectedDate), [savedLogs, selectedDate]);
 
+  const isFollicularOnly = phase === 'follicular';
   const isTodaySelected = dateKey === todayKey;
   const dateLabel = isTodaySelected ? `Today · ${formatLongDate(selectedDate)}` : formatLongDate(selectedDate);
 
@@ -334,16 +335,21 @@ export const App: React.FC = () => {
                 onOpenDailyLog={() => handleTabChange('Daily Log')}
               />
 
-              <AiRecommendation
-                text={phaseContent.recommendation.text}
-                chips={phaseContent.recommendation.chips}
-                onAskAvaClick={() => setIsAskAvaOpen(true)}
-                onChipClick={(chip) => addToast(`Recommendation: ${chip}`, 'Added to today’s goals', 'success')}
-              />
+              {/* The follicular overview ends with the two log summaries; the sections below belong to the other phases' views */}
+              {!isFollicularOnly && (
+                <>
+                <AiRecommendation
+                  text={phaseContent.recommendation.text}
+                  chips={phaseContent.recommendation.chips}
+                  onAskAvaClick={() => setIsAskAvaOpen(true)}
+                  onChipClick={(chip) => addToast(`Recommendation: ${chip}`, 'Added to today’s goals', 'success')}
+                />
 
-              <MedicationHistory medications={medicationHistory} onAddMedication={() => setIsAddMedicationOpen(true)} />
+                <MedicationHistory medications={medicationHistory} onAddMedication={() => setIsAddMedicationOpen(true)} />
 
-              <CycleInsights energyLevel={log.energyLevel} mood={log.mood} hormone={phaseContent.hormone} />
+                <CycleInsights energyLevel={log.energyLevel} mood={log.mood} hormone={phaseContent.hormone} />
+                </>
+              )}
             </main>
           )}
 
